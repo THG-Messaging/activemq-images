@@ -16,5 +16,4 @@ jobs:
     - uses: actions/checkout@v3
     - name: Build the Docker image
       run: 
-        cd ActiveMQ-classic/5.16.5
-        docker build . --file Dockerfile --tag activemq-5.16.5
+        cd ActiveMQ-classic/5.16.5 && docker build . --file Dockerfile --tag activemq-5.16.5
