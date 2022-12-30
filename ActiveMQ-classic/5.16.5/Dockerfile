@@ -1,4 +1,5 @@
 FROM adoptopenjdk/openjdk11-openj9
+RUN cat /etc/*release*
 ENV ACTIVEMQ_WORKDIR /opt
 RUN yum install wget
 RUN mkdir -p $ACTIVEMQ_WORKDIR
