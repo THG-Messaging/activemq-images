@@ -15,4 +15,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file  ActiveMQ-classic/5.16.5/Dockerfile --tag ActiveMQ-5.16.5
+      run: docker build . --file  activemq-images/ActiveMQ-classic/5.16.5/Dockerfile --tag ActiveMQ-5.16.5
