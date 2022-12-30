@@ -1,6 +1,6 @@
 FROM adoptopenjdk/openjdk11-openj9
 ENV ACTIVEMQ_WORKDIR /opt
-RUN apt install wget
+RUN yum install wget
 RUN mkdir -p $ACTIVEMQ_WORKDIR
 RUN https://dlcdn.apache.org/activemq/5.16.5/apache-activemq-5.16.5-bin.tar.gz
 RUN tar -xzf apache-activemq-5.16.5-bin.tar.gz -C $ACTIVEMQ_WORKDIR 
