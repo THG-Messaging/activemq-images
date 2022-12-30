@@ -1,0 +1,18 @@
+name: Build a Docker image to deploy, run, or push to a registry.
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build . --file  ActiveMQ-classic/5.16.5/Dockerfile --tag ActiveMQ-5.16.5
