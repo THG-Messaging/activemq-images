@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/blabla
+  IMAGE_NAME: ${{ github.repository }}/activemq:5.16.5
 
 jobs:
   build:
