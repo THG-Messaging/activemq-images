@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Build the Docker image
         run: 
-          cd ActiveMQ-classic/5.16.5 && docker build . --file Dockerfile --tag test
+          cd ActiveMQ-classic/5.16.5 && docker build . --file Dockerfile
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
@@ -39,7 +39,7 @@ jobs:
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
-        #id: meta
+        id: meta
         #uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         uses: docker/metadata-action@v4
         with:
