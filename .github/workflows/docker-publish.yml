@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: activemq-5.16.5
+  IMAGE_NAME: activemq
 
 jobs:
   build:
@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Build the Docker image
         run: 
-          cd ActiveMQ-classic/5.16.5 && docker build . --file Dockerfile --tag v1.0
+          cd ActiveMQ-classic/5.16.5 && docker build . --file Dockerfile --tag 5.16.5
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
