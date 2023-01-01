@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Build the Docker image
         run: 
-          cd ActiveMQ-classic/5.16.5 && docker build . --file Dockerfile
+          cd ActiveMQ-classic/5.16.5 && docker build . --file Dockerfile --tag test
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
