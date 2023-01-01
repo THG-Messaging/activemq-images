@@ -55,5 +55,5 @@ jobs:
           context: ./ActiveMQ-classic/5.16.5
           push: ${{ github.event_name != 'pull_request' }}
           #tags: ${{ steps.meta.outputs.tags }}
-          tags: user/app:latest
+          tags: vietinis/activemq:latest
           #labels: ${{ steps.meta.outputs.labels }}
