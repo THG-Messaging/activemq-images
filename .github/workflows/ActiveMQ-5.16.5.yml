@@ -1,4 +1,4 @@
-name: build ActiveMQ package
+name: Build ActiveMQ 5.16.5 docker image
 
 on:
   push:
