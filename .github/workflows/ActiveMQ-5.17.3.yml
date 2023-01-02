@@ -1,4 +1,4 @@
-name: build ActiveMQ package
+name: Build ActiveMQ 5.17.3 package
 
 on:
   push:
