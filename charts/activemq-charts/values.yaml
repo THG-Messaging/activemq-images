@@ -21,7 +21,7 @@ ingress:
   hosts:
     - host: "gb5-st-zeninode-001.io.thehut.local"
       paths:
-        - path: /amq
+        - path: /amq1
           pathType: ImplementationSpecific
   #tls: []
   #  - secretName: chart-example-tls
