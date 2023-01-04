@@ -24,9 +24,6 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "activemq-charts.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -40,7 +37,7 @@ spec:
 #          livenessProbe:
 #            httpGet:
 #              path: /
-#              port: http
+#              port: 8161
 #          readinessProbe:
 #            httpGet:
 #              path: /
