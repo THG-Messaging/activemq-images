@@ -10,7 +10,7 @@ imagePullSecrets: []
 
 service:
   type: ClusterIP
-  port: 80
+  port: 8888
 
 ingress:
   enabled: true
