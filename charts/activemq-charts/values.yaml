@@ -9,8 +9,8 @@ image:
 imagePullSecrets: []
 
 service:
-  type: ClusterIP
-  port: 7000
+  type: NodePort
+  port: 31000
 
 ingress:
   enabled: true
@@ -21,7 +21,7 @@ ingress:
   hosts:
     - host: "gb5-st-zeninode-001.io.thehut.local"
       paths:
-        - path: /amq
+        - path: /
           pathType: ImplementationSpecific
   #tls: []
   #  - secretName: chart-example-tls
