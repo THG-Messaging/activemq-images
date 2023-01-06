@@ -4,7 +4,7 @@ image:
   repository: ghcr.io/vietinis/activemq-images/activemq
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "5.16.5"
 
 imagePullSecrets: []
 
@@ -19,7 +19,7 @@ ingress:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: ""
+    - host: "thehutgroup.teleport.sh"
       paths:
         - path: /
           pathType: ImplementationSpecific
