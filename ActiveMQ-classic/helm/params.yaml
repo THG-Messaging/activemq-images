@@ -2,4 +2,4 @@ image:
   tag: "5.16.5"
 
   hosts:
-    - host: "gb5-st-zeninode-001.io.thehut.local"
+    - host: "thehutgroup.teleport.sh"
