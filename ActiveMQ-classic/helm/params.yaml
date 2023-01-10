@@ -1,5 +1,0 @@
-image:
-  tag: "5.16.5"
-
-  hosts:
-    - host: "thehutgroup.teleport.sh"
