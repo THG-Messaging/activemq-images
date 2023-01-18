@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+  activemq:
+    build: .
+    ports:
+      - "8161:8161"
+      - "61616:61616"
+    environment:
+      - BROKER_NAME=${BROKER_NAME}
+      - DB_HOST=postgres
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - CREATE_DB_TABLES=${CREATE_DB_TABLES}
+      - ACTIVEMQ_ADMIN_PASS=${ACTIVEMQ_ADMIN_PASS}

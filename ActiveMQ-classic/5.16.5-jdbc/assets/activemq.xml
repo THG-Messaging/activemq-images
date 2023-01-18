@@ -36,9 +36,9 @@
 
     <bean id="postgres-ds-with-hikari-pool" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
         <property name="driverClassName" value="org.postgresql.Driver"/>
-        <property name="jdbcUrl" value="jdbc:postgresql://172.17.0.3/postgres"/>
-        <property name="username" value="postgres"/>
-        <property name="password" value="mysecretpassword"/>
+        <property name="jdbcUrl" value="jdbc:postgresql://DB_HOST/DB_NAME"/>
+        <property name="username" value="DB_USERNAME"/>
+        <property name="password" value="DB_PASSWORD"/>
         <property name="poolName" value="hikari-amq-pool"/>
         <property name="maximumPoolSize" value="100"/>
         <property name="autoCommit" value="true"/>
@@ -53,7 +53,7 @@
     <!--
         The <broker> element is used to configure the ActiveMQ broker.
     -->
-    <broker xmlns="http://activemq.apache.org/schema/core" brokerName="localhost" dataDirectory="${activemq.data}">
+    <broker xmlns="http://activemq.apache.org/schema/core" brokerName="broker_name" dataDirectory="${activemq.data}">
 
         <destinationPolicy>
             <policyMap>
@@ -100,7 +100,7 @@
         -->
 
         <persistenceAdapter>
-        <jdbcPersistenceAdapter dataSource="#postgres-ds-with-hikari-pool" createTablesOnStartup="true" lockKeepAlivePeriod="5000">
+        <jdbcPersistenceAdapter dataSource="#postgres-ds-with-hikari-pool" createTablesOnStartup="CREATE_DB_TABLES" lockKeepAlivePeriod="5000">
             <locker>
             <lease-database-locker leaseHolderId="node-ID" lockAcquireSleepInterval="10000"/>
             </locker>
