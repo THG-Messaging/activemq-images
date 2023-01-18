@@ -24,7 +24,6 @@ RUN tar -xzf apache-activemq-5.16.5-bin.tar.gz -C $ACTIVEMQ_WORKDIR \
 # ToDoremove .tar
 # users and hosts should go through vars through entrypoint?    
 
-
 COPY assets/activemq.xml $ACTIVEMQ_WORKDIR/apache-activemq-5.16.5/conf/activemq.xml
 COPY assets/docker-entrypoint.sh /
 
