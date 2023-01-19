@@ -26,7 +26,7 @@ RUN tar -xzf apache-activemq-5.16.5-bin.tar.gz -C $ACTIVEMQ_WORKDIR \
 
 COPY assets/activemq.xml $ACTIVEMQ_WORKDIR/apache-activemq-5.16.5/conf/activemq.xml
 COPY assets/docker-entrypoint.sh /
-RUN chmod +x docker-entrypoint.sh
+RUN chmod 777 /docker-entrypoint.sh
 
 WORKDIR $ACTIVEMQ_WORKDIR/apache-activemq-5.16.5/
 
