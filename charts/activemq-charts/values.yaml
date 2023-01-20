@@ -17,8 +17,15 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 8161
-  labels: {}
+  ports:
+  - name: dashboard
+    port: 8161
+    targetPort: 8161
+    protocol: TCP
+  - name: openwire
+    port: 61616
+    targetPort: 61616
+    protocol: TCP
 
 ingress:
   enabled: false
