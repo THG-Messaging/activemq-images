@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/vietinis/activemq-images/activemq
+  repository: ghcr.io/thg-messaging/activemq-images/activemq
   pullPolicy: IfNotPresent
   tag: "5.16.5"
 
