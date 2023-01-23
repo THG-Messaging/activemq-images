@@ -17,7 +17,6 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  ports:
   - name: dashboard
     port: 8161
     targetPort: 8161
