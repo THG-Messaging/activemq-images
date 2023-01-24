@@ -9,8 +9,15 @@ services:
   activemq:
     build: .
     ports:
+      # WEB UI
       - "8161:8161"
+      # Openwire
       - "61616:61616"
+      # Prometheus exporter
+      - "12345:12345"
+      #JMX metrics
+      - "1099:1099"
+      - "11099:11099"
     environment:
       - BROKER_NAME=${BROKER_NAME}
       - DB_HOST=postgres
@@ -19,3 +26,4 @@ services:
       - DB_NAME=${DB_NAME}
       - CREATE_DB_TABLES=${CREATE_DB_TABLES}
       - ACTIVEMQ_ADMIN_PASS=${ACTIVEMQ_ADMIN_PASS}
+      - USE_JMX=${USE_JMX}
