@@ -8,12 +8,12 @@ spec:
   type: {{ .Values.service.type }}
   ports:
   - name: dashboard
-    port: {{ .Values.service.ports.0.port }}
-    targetPort: {{ .Values.service.ports.0.targetPort }}
-    protocol: {{ .Values.service.ports.0.protocol }}
+    port: {{ .Values.service.ports.dashboard.port }}
+    targetPort: {{ .Values.service.ports.dashboard.targetPort }}
+    protocol: {{ .Values.service.ports.dashboard.protocol }}
   - name: openwire
-    port: {{ .Values.service.ports.1.port }}
-    targetPort: {{ .Values.service.ports.1.targetPort }}
-    protocol: {{ .Values.service.ports.1.protocol }}
+    port: {{ .Values.service.ports.openwire.port }}
+    targetPort: {{ .Values.service.ports.openwire.targetPort }}
+    protocol: {{ .Values.service.ports.openwire.protocol }}
   selector:
     {{- include "activemq-charts.selectorLabels" . | nindent 4 }}
