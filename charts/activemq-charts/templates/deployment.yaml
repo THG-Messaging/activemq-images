@@ -31,12 +31,12 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            {{- range .Values.service.ports }}
-            - name: {{ .name }}
-              port: {{ .port }}
-              targetPort: {{ .targetPort }}
-              protocol: {{ .protocol }}
-            {{- end }}
+            - name: http
+              containerPort: 
+                  {{- range .Values.service.ports }}
+                    port: {{ .port }}
+                  {{- end }}
+              protocol: TCP
 #          livenessProbe:
 #            httpGet:
 #              path: /
