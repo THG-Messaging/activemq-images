@@ -7,9 +7,13 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-  - port: {{ .Values.service.port }}
-    targetPort: {{ .Values.service.port }}
-    protocol: {{ .Values.service.protocol }}
-    name: {{ .Values.service.name }}
+  - name: dashboard
+    port: {{ .Values.service.ports.0.port }}
+    targetPort: {{ .Values.service.ports.0.targetPort }}
+    protocol: {{ .Values.service.ports.0.protocol }}
+  - name: openwire
+    port: {{ .Values.service.ports.1.port }}
+    targetPort: {{ .Values.service.ports.1.targetPort }}
+    protocol: {{ .Values.service.ports.1.protocol }}
   selector:
     {{- include "activemq-charts.selectorLabels" . | nindent 4 }}
