@@ -3,12 +3,12 @@ entries:
   activemq:
   - apiVersion: v2
     appVersion: 5.16.5
-    created: "2023-01-25T16:53:45.3769732+02:00"
+    created: "2023-01-25T17:01:05.6930802+02:00"
     description: ActiveMQ Helm chart
-    digest: dfaff0ae390afb5b4c32a019a4a34c91c2a09dbc639bb395e3ac2fd6eeb2e378
+    digest: 62a83aaea9c0efd01c01135acc347289d34ca1db345572ef08ad18bcd849c905
     name: activemq
     type: application
     urls:
     - activemq-0.1.27.tgz
     version: 0.1.27
-generated: "2023-01-25T16:53:45.3653082+02:00"
+generated: "2023-01-25T17:01:05.6862155+02:00"
