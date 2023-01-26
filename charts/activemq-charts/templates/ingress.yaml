@@ -1,7 +1,7 @@
 {{- if .Values.ingress.enabled -}}
 {{- $paths := .Values.ingress.paths -}}
 {{- $fullName := include "activemq-charts.fullname" . -}}
-{{- $svcPort := .Values.service.port -}}
+{{- $svcPort := .Values.service.ports -}}
 {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
 {{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
