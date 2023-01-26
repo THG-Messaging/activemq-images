@@ -30,7 +30,9 @@ service:
 ingress:
   enabled: false
   className: ""
-  labels: {}
+  labels: 
+    app: activemq
+    chart: activemq-charts
   annotations: {}
   paths: [/]
   hosts: []
