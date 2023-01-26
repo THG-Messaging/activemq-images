@@ -17,8 +17,8 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
-  labels:
-    {{- include "activemq-charts.labels" . | nindent 4 }}
+#  labels:
+#    {{- include "activemq-charts.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
