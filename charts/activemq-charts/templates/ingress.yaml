@@ -29,20 +29,21 @@ spec:
           - path: {{ $path }}
             pathType: Prefix
             backend:
-              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ $fullName }}
-                port:
-                  number: {{ $svcPort }}
-              {{- else }}
-              serviceName: {{ $fullName }}
-              servicePort: {{ $svcPort }}
+                {{- range .Values.service.ports }}
+                - name: {{ .name }}
+                  port: {{ .port }}
+                  protocol: {{ .protocol }}
+                {{- end }}
+#                name: {{ $name }}
+#                port:
+#                  number: {{ $svcPort }}
               {{- end }}
           {{- end }}
     {{- end }}
 defaultBackend:
 service:
-name: {{ $fullName }}
+name: {{ $name }}
 port:
 number: {{ $svcPort }}
 {{- end }}
