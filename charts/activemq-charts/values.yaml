@@ -32,7 +32,21 @@ ingress:
   className: ""
   labels: {}
   annotations: {}
-  paths: [/]
+  paths:
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service:
+                name: dashboard
+                port:
+                  number: 8161
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: openwire
+                port:
+                  number: 61616
   hosts: []
   tls: []
 
@@ -41,7 +55,7 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 1
   targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
 
