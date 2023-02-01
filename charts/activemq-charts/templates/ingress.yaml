@@ -37,15 +37,5 @@ spec:
                     port: {{ .port }}
                     protocol: {{ .protocol }}
                   {{- end }}
-#                name: {{ $name }}
-#                port:
-#                  number: {{ $svcPort }}
               {{- end }}
-#          {{- end }}
     {{- end }}
-#defaultBackend:
-#service:
-#name: {{ $name }}
-#port:
-#number: {{ $svcPort }}
-#{{- end }}
