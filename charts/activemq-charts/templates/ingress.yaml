@@ -30,20 +30,22 @@ spec:
             pathType: Prefix
             backend:
               service:
-                {{- range .Values.service.ports }}
-                - name: {{ .name }}
-                  port: {{ .port }}
-                  protocol: {{ .protocol }}
-                {{- end }}
+                name: {{ .Values.service.type }}
+                port:
+                  {{- range .Values.service.ports }}
+                  - name: {{ .name }}
+                    port: {{ .port }}
+                    protocol: {{ .protocol }}
+                  {{- end }}
 #                name: {{ $name }}
 #                port:
 #                  number: {{ $svcPort }}
               {{- end }}
-          {{- end }}
+#          {{- end }}
     {{- end }}
-defaultBackend:
-service:
-name: {{ $name }}
-port:
-number: {{ $svcPort }}
-{{- end }}
+#defaultBackend:
+#service:
+#name: {{ $name }}
+#port:
+#number: {{ $svcPort }}
+#{{- end }}
