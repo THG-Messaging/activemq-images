@@ -31,20 +31,25 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ .Values.service.type }}
-                port:
-                  name: {{ index $svcPort 0 }}.name
-                  port: {{ index $svcPort 0 }}.port
-                  targetPort: {{ index $svcPort 0 }}.targetPort
+                name: {{ $fullName }}
+                ports:
+                - name: dashboard
+                  port: 8161
+                  targetPort: 8161
+                  protocol: TCP
+                - name: openwire
+                  port: 61616
+                  targetPort: 61616
+                  protocol: TCP
               {{- end }}
     {{- end }}
     {{- else }}
       defaultBackend:
       service:
-      name: {{ .Values.service.type }}
+      name: {{ $fullName }}
       port:
-        name: {{ index $svcPort 0 }}.name
-        port: {{ index $svcPort 0 }}.port
-        targetPort: {{ index $svcPort 0 }}.targetPort
+        name: dashboard
+        port: 8161
+        protocol: TCP
     {{- end }}
 {{- end }}
