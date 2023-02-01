@@ -33,7 +33,7 @@ spec:
               service:
                 name: {{ .Values.service.type }}
                 port:
-                  name: {{ $svcPort.name }}
+                  name: {{ index $svcPort 0 }}.name
               {{- end }}
     {{- end }}
     {{- else }}
@@ -41,6 +41,6 @@ spec:
       service:
       name: {{ .Values.service.type }}
       port:
-        name: {{ $svcPort.name }}
+        name: {{ index $svcPort 0 }}.name
     {{- end }}
 {{- end }}
