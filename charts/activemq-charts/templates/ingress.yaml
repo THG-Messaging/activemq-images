@@ -20,6 +20,7 @@ spec:
       secretName: {{ .secretName }}
     {{- end }}
   {{- end }}
+  {{- if .Values.ingress.hosts }}
   rules:
     {{- range $host :=  .Values.ingress.hosts }}
     - host: {{ $host | quote }}
@@ -38,5 +39,16 @@ spec:
                     protocol: {{ .protocol }}
                   {{- end }}
               {{- end }}
+    {{- end }}
+    {{- else }}
+      defaultBackend:
+      service:
+      name: {{ .Values.service.type }}
+      port:
+        {{- range .Values.service.ports }}
+        - name: {{ .name }}
+          port: {{ .port }}
+          protocol: {{ .protocol }}
+        {{- end }}
     {{- end }}
 {{- end }}
