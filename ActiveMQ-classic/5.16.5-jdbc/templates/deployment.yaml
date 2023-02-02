@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: observability
+  name: {{ include "ActiveMQ-JDBC.fullname" . }}
+  labels:
+    {{- include "ActiveMQ-JDBC.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "ActiveMQ-JDBC.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8161
+              protocol: TCP
+            - name: metrics
+              containerPort: 12345
+              protocol: TCP
+            - name: transport
+              containerPort: 61616
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+               port: 8161
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          readinessProbe:
+            tcpSocket:
+               port: 8161
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          env:
+            - name: BROKER_NAME
+              value: "tepstelis"
+            - name: DB_HOST
+              value: "10.0.1.151"
+            - name: DB_USERNAME
+              value: "postgres"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-db
+                  key: postgres-password
+            - name: DB_NAME
+              value: "postgres"
+            - name: CREATE_DB_TABLES
+              value: "true"
+            - name: ACTIVEMQ_ADMIN_PASS
+              value: "6%@12FZrngKa"
+            - name: USE_JMX
+              value: "true"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

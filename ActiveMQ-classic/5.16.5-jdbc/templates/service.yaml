@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ActiveMQ-JDBC.fullname" . }}
+  labels:
+    {{- include "ActiveMQ-JDBC.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      name: http
+  selector:
+    {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 4 }}
