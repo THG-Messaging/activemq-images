@@ -12,6 +12,8 @@ spec:
   selector:
     matchLabels:
       {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -71,7 +73,10 @@ spec:
             - name: CREATE_DB_TABLES
               value: "true"
             - name: ACTIVEMQ_ADMIN_PASS
-              value: "6%@12FZrngKa"
+              valueFrom:
+                secretKeyRef:
+                  name: amq-admin-secret
+                  key: amq-admin-secret
             - name: USE_JMX
               value: "true"
           resources:
