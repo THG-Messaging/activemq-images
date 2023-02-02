@@ -31,16 +31,17 @@ ingress:
   enabled: true
   className: ""
   labels: {}
-  annotations: {}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
   paths:
-          - path: /admin
+          - path: /admin/(/|$)(.*)
             pathType: Prefix
             backend:
               service:
                 name: dashboard
                 port:
                   number: 8161
-          - path: /
+          - path: /()(.*)
             pathType: Prefix
             backend:
               service:
