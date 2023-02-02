@@ -33,16 +33,20 @@ ingress:
   labels: {}
   annotations: {}
   paths:
-    - backend:
-        service:
-          name: dashboard
-          port:
-            number: 8161
-    - backend:
-        service:
-          name: openwire
-          port:
-            number: 61616
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service:
+                name: dashboard
+                port:
+                  number: 8161
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: openwire
+                port:
+                  number: 61616
   hosts: []
   tls: []
 
