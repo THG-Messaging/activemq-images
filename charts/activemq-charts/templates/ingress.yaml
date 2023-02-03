@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "activemq-charts.fullname" . }}-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+  - host: {{ .Values.ingress.hosts }}
+    http:
+      paths:
+      - path: /admin/(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: dashboard
+            port:
+              number: 8161
+      - path: /()(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: openwire
+            port:
+              number: 61616
+  tls: {{ .Values.ingress.tls }}
+  {{- if .Values.ingress.className }}
+  className: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- with .Values.ingress.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
