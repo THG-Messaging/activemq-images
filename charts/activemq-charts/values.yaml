@@ -16,7 +16,7 @@ podSecurityContext: {}
 securityContext: {}
 
 service:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
   - name: dashboard
     port: 8161
