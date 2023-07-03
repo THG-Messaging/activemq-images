@@ -17,7 +17,7 @@ RUN apt update
 RUN apt install wget vim -y \
     && mkdir -p $ACTIVEMQ_WORKDIR \
     && mkdir -p $CONTAINER_METRICS
-RUN wget https://dlcdn.apache.org/activemq/5.16.5/apache-activemq-5.16.5-bin.tar.gz \
+RUN wget https://archive.apache.org/dist/activemq/5.16.5/apache-activemq-5.16.5-bin.tar.gz \
     && wget https://repo1.maven.org/maven2/com/zaxxer/HikariCP/5.0.0/HikariCP-5.0.0.jar \
     && wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.3.1/postgresql-42.3.1.jar \
     && wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_httpserver/0.17.2/jmx_prometheus_httpserver-0.17.2.jar
