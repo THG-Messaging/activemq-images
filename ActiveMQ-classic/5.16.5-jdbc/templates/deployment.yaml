@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: observability
+  namespace: {{ .Values.namespace }}
   name: {{ include "ActiveMQ-JDBC.fullname" . }}
   labels:
     {{- include "ActiveMQ-JDBC.labels" . | nindent 4 }}
@@ -58,18 +58,18 @@ spec:
             periodSeconds: 15
           env:
             - name: BROKER_NAME
-              value: "tepstelis"
+              value: {{ .Values.brokerName }}
             - name: DB_HOST
-              value: "10.0.1.151"
+              value: {{ .Values.JDBCconfig.dbHost }}
             - name: DB_USERNAME
-              value: "postgres"
+              value: {{ .Values.JDBCconfig.dbUser }}
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: postgresql-db
-                  key: postgres-password
+                  name: {{ .Values.JDBCconfig.existingDbPasswordSecret.name }}
+                  key: {{ .Values.JDBCconfig.existingDbPasswordSecret.key }}
             - name: DB_NAME
-              value: "postgres"
+              value: {{ .Values.JDBCconfig.dbName }}
             - name: CREATE_DB_TABLES
               value: "true"
             - name: ACTIVEMQ_ADMIN_PASS

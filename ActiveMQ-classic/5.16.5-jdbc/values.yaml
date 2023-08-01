@@ -10,6 +10,18 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: "5.16.5"
 
+namespace: "amq-test"
+brokerName: "amq-demo"
+
+JDBCconfig:
+  dbHost: "postgres-postgresql.amq-test.svc.cluster.local"
+  #dbPort:
+  dbName: "amq-test"
+  dbUser: "postgres"
+  existingDbPasswordSecret: 
+    name: "postgres-postgresql"
+    key: "postgres-password"
+  createTables: "true"
 
 imagePullSecrets: []
 nameOverride: ""
