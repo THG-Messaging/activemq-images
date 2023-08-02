@@ -11,6 +11,7 @@ ENV BROKER_NAME \
     DB_NAME \
     CREATE_DB_TABLES \
     ACTIVEMQ_ADMIN_PASS \
+    METRICS_ENABLED \
     USE_JMX
     
 RUN apt update

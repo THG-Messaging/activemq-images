@@ -38,22 +38,29 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 8161
+              containerPort: {{ .Values.webUI.port }}
               protocol: TCP
+          {{if (default .Values.metrics.enabled true)}}  
             - name: metrics
-              containerPort: 12345
+              containerPort: {{ .Values.metrics.port }}
               protocol: TCP
+          {{ end }}
             - name: transport
               containerPort: 61616
               protocol: TCP
+          {{if (default .Values.JMX.enabled true)}}
+            - name: jmx
+              containerPort: {{ .Values.JMX.port }}
+              protocol: TCP
+          {{ end }}
           livenessProbe:
             tcpSocket:
-               port: 8161
+               port: {{ .Values.webUI.port }}
             initialDelaySeconds: 60
             periodSeconds: 15
           readinessProbe:
             tcpSocket:
-               port: 8161
+               port: {{ .Values.webUI.port }}
             initialDelaySeconds: 15
             periodSeconds: 15
           env:
@@ -77,6 +84,10 @@ spec:
                 secretKeyRef:
                   name: amq-admin-secret
                   key: amq-admin-secret
+            {{if (default .Values.metrics.enabled true)}}
+            - name: METRICS_ENABLED
+              value: "true" 
+            {{- end }}           
             - name: USE_JMX
               value: "true"
           resources:
