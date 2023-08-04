@@ -30,6 +30,10 @@ spec:
       serviceAccountName: {{ include "ActiveMQ-JDBC.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: logs
+          persistentVolumeClaim:
+            claimName: pvc-amq-logs
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -40,7 +44,7 @@ spec:
             - name: http
               containerPort: {{ .Values.webUI.port }}
               protocol: TCP
-          {{if (default .Values.metrics.enabled true)}}  
+          {{- if or (.Values.metrics.enabled) (eq (.Values.metrics.enabled | toString) "<nil>") }} 
             - name: metrics
               containerPort: {{ .Values.metrics.port }}
               protocol: TCP
@@ -48,11 +52,14 @@ spec:
             - name: transport
               containerPort: 61616
               protocol: TCP
-          {{if (default .Values.JMX.enabled true)}}
+          {{- if or (.Values.JMX.enabled) (eq (.Values.JMX.enabled | toString) "<nil>") }} 
             - name: jmx
               containerPort: {{ .Values.JMX.port }}
               protocol: TCP
           {{ end }}
+          volumeMounts:
+          - name: logs
+            mountPath: "/opt/apache-activemq-{{.Values.image.tag}}/data"
           livenessProbe:
             tcpSocket:
                port: {{ .Values.webUI.port }}
@@ -84,7 +91,7 @@ spec:
                 secretKeyRef:
                   name: amq-admin-secret
                   key: amq-admin-secret
-            {{if (default .Values.metrics.enabled true)}}
+            {{- if or (.Values.metrics.enabled) (eq (.Values.metrics.enabled | toString) "<nil>") }} 
             - name: METRICS_ENABLED
               value: "true" 
             {{- end }}           

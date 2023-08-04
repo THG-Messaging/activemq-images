@@ -9,6 +9,8 @@ whitelistObjectNames:
   - "org.apache.activemq:type=Topic,brokerName=*"
 # @ToDo take host from ENV
 hostPort: localhost:1099
+username: monitorRole
+password: MONITOR_ROLE_PASS
 rules:
 - pattern: org.apache.activemq<type=Broker, brokerName=(\S*), destinationType=Queue, destinationName=(\S*)><>(\w+)
   name: activemq_queue_$3

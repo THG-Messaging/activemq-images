@@ -12,7 +12,9 @@ ENV BROKER_NAME \
     CREATE_DB_TABLES \
     ACTIVEMQ_ADMIN_PASS \
     METRICS_ENABLED \
-    USE_JMX
+    USE_JMX \
+    CONTROL_ROLE_PASS \
+    MONITOR_ROLE_PASS
     
 RUN apt update
 RUN apt install wget vim -y \
@@ -33,6 +35,8 @@ RUN tar -xzf apache-activemq-5.16.5-bin.tar.gz -C $ACTIVEMQ_WORKDIR \
 COPY assets/activemq.xml $ACTIVEMQ_WORKDIR/apache-activemq-5.16.5/conf/activemq.xml
 COPY assets/docker-entrypoint.sh /
 COPY assets/config.yaml $CONTAINER_METRICS/config.yaml
+COPY assets/conf $ACTIVEMQ_WORKDIR/apache-activemq-5.16.5/conf
+RUN chmod -R 600 $ACTIVEMQ_WORKDIR/apache-activemq-5.16.5/conf/jmx.access $ACTIVEMQ_WORKDIR/apache-activemq-5.16.5/conf/jmx.password
 RUN chmod 777 /docker-entrypoint.sh
 
 WORKDIR $ACTIVEMQ_WORKDIR/apache-activemq-5.16.5/
