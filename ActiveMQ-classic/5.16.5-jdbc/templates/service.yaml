@@ -1,14 +1,49 @@
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "ActiveMQ-JDBC.fullname" . }}
+  name: {{ include "ActiveMQ-JDBC.fullname" . }}-webui
   labels:
     {{- include "ActiveMQ-JDBC.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.webUI.type }}
   ports:
-    - port: {{ .Values.service.port }}
+    - port: {{ .Values.webUI.port }}
       targetPort: http
       name: http
   selector:
     {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 4 }}
+---
+{{- if .Values.metrics.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ActiveMQ-JDBC.fullname" . }}-metrics
+  labels:
+  {{- include "ActiveMQ-JDBC.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.metrics.type }}
+  ports:
+    - port: {{ .Values.metrics.port }}
+      targetPort: metrics
+      name: metrics
+  selector:
+  {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 4 }}
+{{- end }}
+---
+{{- if .Values.JMX.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ActiveMQ-JDBC.fullname" . }}-jmx
+  labels:
+  {{- include "ActiveMQ-JDBC.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.JMX.type }}
+  ports:
+    - port: {{ .Values.JMX.port }}
+      targetPort: jmx
+      name: jmx
+  selector:
+    {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 4 }}
+{{- end }}

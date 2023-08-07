@@ -25,13 +25,16 @@ JDBCconfig:
 
 webUI:
   port: 8161
+  type: ClusterIP
 
 JMX:
   enabled: true
+  type: ClusterIP
   port: 1099
 
 metrics:
   enabled: true
+  type: ClusterIP
   port: 12345
 
 imagePullSecrets: []
@@ -59,10 +62,6 @@ securityContext: {}
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
-
-service:
-  type: ClusterIP
-  port: 8161
 
 ingress:
   enabled: false

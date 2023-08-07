@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "ActiveMQ-JDBC.fullname" . }}:{{ .Values.service.port }}']
+      args: ['{{ include "ActiveMQ-JDBC.fullname" . }}:{{ .Values.webUI.port }}']
   restartPolicy: Never
