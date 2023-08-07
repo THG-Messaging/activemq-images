@@ -47,3 +47,34 @@ spec:
   selector:
     {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 4 }}
 {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ActiveMQ-JDBC.fullname" . }}-transport
+  labels:
+  {{- include "ActiveMQ-JDBC.labels" . | nindent 4 }}
+spec:
+  ports:
+    {{- if .Values.transportConnectors.openwire.enabled }}
+    - port: {{ .Values.transportConnectors.openwire.port }}
+      targetPort: openwire
+      name: openwire
+    {{- end }}
+    {{- if .Values.transportConnectors.amqp.enabled }}
+    - port: {{ .Values.transportConnectors.amqp.port }}
+      targetPort: amqp
+      name: amqp
+    {{- end }}
+    {{- if .Values.transportConnectors.stomp.enabled }}
+    - port: {{ .Values.transportConnectors.stomp.port }}
+      targetPort: stomp
+      name: stomp
+    {{- end }}
+    {{- if .Values.transportConnectors.mqtt.enabled }}
+    - port: {{ .Values.transportConnectors.mqtt.port }}
+      targetPort: mqtt
+      name: mqtt
+    {{- end }}
+  selector:
+    {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 4 }}

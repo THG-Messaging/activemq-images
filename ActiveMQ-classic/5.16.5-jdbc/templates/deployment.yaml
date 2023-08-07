@@ -49,9 +49,26 @@ spec:
               containerPort: {{ .Values.metrics.port }}
               protocol: TCP
           {{ end }}
-            - name: transport
-              containerPort: 61616
+          {{- if or (.Values.transportConnectors.openwire.enabled) (eq (.Values.transportConnectors.openwire.enabled | toString) "<nil>") }} 
+            - name: openwire
+              containerPort: {{ .Values.transportConnectors.openwire.port }}
               protocol: TCP
+          {{ end }}
+          {{- if or (.Values.transportConnectors.amqp.enabled) (eq (.Values.transportConnectors.amqp.enabled | toString) "<nil>") }} 
+            - name: amqp
+              containerPort: {{ .Values.transportConnectors.amqp.port }}
+              protocol: TCP
+          {{ end }}
+          {{- if or (.Values.transportConnectors.stomp.enabled) (eq (.Values.transportConnectors.stomp.enabled | toString) "<nil>") }} 
+            - name: stomp
+              containerPort: {{ .Values.transportConnectors.stomp.port }}
+              protocol: TCP
+          {{ end }}
+          {{- if or (.Values.transportConnectors.mqtt.enabled) (eq (.Values.transportConnectors.mqtt.enabled | toString) "<nil>") }} 
+            - name: mqttp
+              containerPort: {{ .Values.transportConnectors.mqtt.port }}
+              protocol: TCP
+          {{ end }}
           {{- if or (.Values.JMX.enabled) (eq (.Values.JMX.enabled | toString) "<nil>") }} 
             - name: jmx
               containerPort: {{ .Values.JMX.port }}
@@ -84,8 +101,10 @@ spec:
                   key: {{ .Values.JDBCconfig.existingDbPasswordSecret.key }}
             - name: DB_NAME
               value: {{ .Values.JDBCconfig.dbName }}
+            {{- if or (.Values.JDBCconfig.createTables) (eq (.Values.JDBCconfig.createTables | toString) "<nil>") }} 
             - name: CREATE_DB_TABLES
               value: "true"
+            {{- end }}
             - name: ACTIVEMQ_ADMIN_PASS
               valueFrom:
                 secretKeyRef:
@@ -107,22 +126,30 @@ spec:
                 secretKeyRef:
                   name: amq-admin-secret
                   key: control-role-pass
+            {{- if or (.Values.transportConnectors.openwire.enabled) (eq (.Values.transportConnectors.openwire.enabled | toString) "<nil>") }} 
             - name: OPENWIRE_ENABLED
-              value: {{ .Values.transportConnectors.openwire.enabled }}
+              value: "true"
             - name: OPENWIRE_PORT
-              value: {{ .Values.transportConnectors.openwire.port }}
+              value: "{{ .Values.transportConnectors.openwire.port }}"
+            {{- end }}
+            {{- if or (.Values.transportConnectors.amqp.enabled) (eq (.Values.transportConnectors.amqp.enabled | toString) "<nil>") }} 
             - name: AMQP_ENABLED
-              value: {{ .Values.transportConnectors.amqp.enabled }}
+              value: "true"
             - name: AMQP_PORT
-              value: {{ .Values.transportConnectors.amqp.port }}
+              value: "{{ .Values.transportConnectors.amqp.port }}"
+            {{- end }}
+            {{- if or (.Values.transportConnectors.stomp.enabled) (eq (.Values.transportConnectors.stomp.enabled | toString) "<nil>") }}   
             - name: STOMP_ENABLED
-              value: {{ .Values.transportConnectors.stomp.enabled }}
+              value: "true"
             - name: STOMP_PORT
-              value: {{ .Values.transportConnectors.stomp.port }}
+              value: "{{ .Values.transportConnectors.stomp.port }}"
+            {{- end }}
+            {{- if or (.Values.transportConnectors.mqtt.enabled) (eq (.Values.transportConnectors.mqtt.enabled | toString) "<nil>") }}   
             - name: MQTT_ENABLED
-              value: {{ .Values.transportConnectors.mqtt.enabled }}
+              value: "true"
             - name: MQTT_PORT
-              value: {{ .Values.transportConnectors.mqtt.port }}
+              value: "{{ .Values.transportConnectors.mqtt.port }}"
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

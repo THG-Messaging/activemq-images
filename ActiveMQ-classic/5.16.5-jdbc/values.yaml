@@ -50,7 +50,7 @@ transportConnectors:
   mqtt:
     enabled: true
     port: 1883
-    
+
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
