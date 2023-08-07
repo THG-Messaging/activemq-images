@@ -107,6 +107,22 @@ spec:
                 secretKeyRef:
                   name: amq-admin-secret
                   key: control-role-pass
+            - name: OPENWIRE_ENABLED
+              value: {{ .Values.transportConnectors.openwire.enabled }}
+            - name: OPENWIRE_PORT
+              value: {{ .Values.transportConnectors.openwire.port }}
+            - name: AMQP_ENABLED
+              value: {{ .Values.transportConnectors.amqp.enabled }}
+            - name: AMQP_PORT
+              value: {{ .Values.transportConnectors.amqp.port }}
+            - name: STOMP_ENABLED
+              value: {{ .Values.transportConnectors.stomp.enabled }}
+            - name: STOMP_PORT
+              value: {{ .Values.transportConnectors.stomp.port }}
+            - name: MQTT_ENABLED
+              value: {{ .Values.transportConnectors.mqtt.enabled }}
+            - name: MQTT_PORT
+              value: {{ .Values.transportConnectors.mqtt.port }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

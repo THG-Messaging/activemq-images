@@ -37,6 +37,20 @@ metrics:
   type: ClusterIP
   port: 12345
 
+transportConnectors:
+  openwire:
+    enabled: true
+    port: 61616
+  amqp:
+    enabled: true
+    port: 5672
+  stomp:
+    enabled: true
+    port: 61613
+  mqtt:
+    enabled: true
+    port: 1883
+    
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""

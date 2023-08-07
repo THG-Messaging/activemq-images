@@ -14,7 +14,15 @@ ENV BROKER_NAME \
     METRICS_ENABLED \
     USE_JMX \
     CONTROL_ROLE_PASS \
-    MONITOR_ROLE_PASS
+    MONITOR_ROLE_PASS \
+    OPENWIRE_ENABLED \
+    OPENWIRE_PORT \
+    AMQP_ENABLED \
+    AMQP_PORT \
+    STOMP_ENABLED \
+    STOMP_PORT \
+    MQTT_ENABLED \
+    MQTT_PORT
     
 RUN apt update
 RUN apt install wget vim -y \
