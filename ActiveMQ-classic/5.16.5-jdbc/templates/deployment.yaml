@@ -97,6 +97,16 @@ spec:
             {{- end }}           
             - name: USE_JMX
               value: "true"
+            - name: MONITOR_ROLE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: amq-admin-secret
+                  key: monitor-role-pass
+            - name: CONTROL_ROLE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: amq-admin-secret
+                  key: control-role-pass
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
