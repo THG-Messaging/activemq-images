@@ -97,8 +97,8 @@ spec:
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.JDBCconfig.existingDbPasswordSecret.name }}
-                  key: {{ .Values.JDBCconfig.existingDbPasswordSecret.key }}
+                  name: "db-details"
+                  key: "db-password"
             - name: DB_NAME
               value: {{ .Values.JDBCconfig.dbName }}
             {{- if or (.Values.JDBCconfig.createTables) (eq (.Values.JDBCconfig.createTables | toString) "<nil>") }} 
