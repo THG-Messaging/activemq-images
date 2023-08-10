@@ -11,4 +11,15 @@ entries:
     urls:
     - activemq-0.1.28.tgz
     version: 0.1.28
+  amq-jdbc:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2023-08-10T13:35:41.6619564+03:00"
+    description: A Helm chart for Kubernetes
+    digest: 43253c0c89d28cc93b1f993721e983e3de7ff7c4e15c075f6706ab6ee57bac44
+    name: amq-jdbc
+    type: application
+    urls:
+    - amq-jdbc-0.1.0.tgz
+    version: 0.1.0
 generated: "2023-02-08T23:20:03.263819+02:00"
