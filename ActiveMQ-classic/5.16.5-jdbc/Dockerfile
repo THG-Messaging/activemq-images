@@ -52,4 +52,3 @@ WORKDIR $ACTIVEMQ_WORKDIR/apache-activemq-5.16.5/
 EXPOSE 8161 61616
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
-#CMD ["/bin/sh", "-c", "bin/activemq console"]
