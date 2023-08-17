@@ -185,12 +185,14 @@
     	<property name="getMaxFrameSize" ref="100000000" />
     </bean>
 -->
+    <bean class="java.lang.System" id="system"/>
+
     <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" id="serverAttributes">
-        <property name="targetObject" ref="Server"/>
-        <property name="targetMethod" value="setAttribute"/>
+        <property name="targetObject" ref="system"/>
+        <property name="targetMethod" value="setProperty"/>
         <property name="arguments">
             <list>
-                <value type="java.lang.String">org.eclipse.jetty.server.Request.maxFormContentSize</value>
+                <value type="java.lang.String">org.eclipse.jetty.server.HttpConfiguration.requestHeaderSize</value>
                 <value type="java.lang.Object">100000</value>
             </list>
         </property>
