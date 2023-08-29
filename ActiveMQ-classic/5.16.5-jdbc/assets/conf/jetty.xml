@@ -135,6 +135,9 @@
 
     </bean>
 
+    <bean id="httpConfiguration" class="org.eclipse.jetty.server.HttpConfiguration">
+        <property name="requestHeaderSize" value="300000"/>
+    </bean>
 
     <bean id="invokeConnectors" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
         <property name="targetObject" ref="Server"/>
@@ -149,11 +152,7 @@
                     <property name="connectionFactories">
                         <list>
                             <bean class="org.eclipse.jetty.server.HttpConnectionFactory">
-                                <constructor-arg type="org.eclipse.jetty.server.HttpConfiguration">
-                                    <bean class="org.eclipse.jetty.server.HttpConfiguration">
-                                        <property name="requestHeaderSize" value="300000"/>
-                                    </bean>
-                                </constructor-arg>
+                                <constructor-arg type="org.eclipse.jetty.server.HttpConfiguration" ref="httpConfiguration"/>
                             </bean>
                         </list>
                     </property>
@@ -187,9 +186,17 @@
     </bean>
 
     <bean id="invokeStart" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"
-          depends-on="configureJetty, invokeConnectors">
+          depends-on="addCustomizers, configureJetty, invokeConnectors">
         <property name="targetObject" ref="Server"/>
         <property name="targetMethod" value="start"/>
+    </bean>
+
+    <bean id="forwardedRequestCustomizer"  class="org.eclipse.jetty.server.ForwardedRequestCustomizer"/>
+
+    <bean id="addCustomizers" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetObject" ref="httpConfiguration" />
+        <property name="targetMethod" value="addCustomizer" />
+        <property name="arguments" ref="forwardedRequestCustomizer" />
     </bean>
 
 </beans>
