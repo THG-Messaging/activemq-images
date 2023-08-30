@@ -136,7 +136,7 @@
     </bean>
 
     <bean id="httpConfiguration" class="org.eclipse.jetty.server.HttpConfiguration">
-        <property name="requestHeaderSize" value="300000"/>
+        <property name="requestHeaderSize" value="4000"/>
     </bean>
 
     <bean id="invokeConnectors" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
