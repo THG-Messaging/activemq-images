@@ -38,7 +38,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: 5.16.5
+          tags: 5.16.5-${{github.ref_name}}
 
       - name: Build and push Docker image
         id: build-and-push
