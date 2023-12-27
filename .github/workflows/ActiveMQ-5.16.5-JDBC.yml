@@ -21,9 +21,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Get Tag
-        id: vars
-        run: echo ::set-output name=tag::${git describe --abbrev=0}
       - name: Build the Docker image
         run: 
           cd ActiveMQ-classic/5.16.5-jdbc && docker build . --file Dockerfile --tag ActiveMQ-5.16.5-JDBC:${{github.ref_name}}
