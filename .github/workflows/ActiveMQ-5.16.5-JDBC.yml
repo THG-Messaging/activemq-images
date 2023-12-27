@@ -25,7 +25,7 @@ jobs:
         
       - name: Build the Docker image
         run: 
-          cd ActiveMQ-classic/5.16.5-jdbc && docker build . --file Dockerfile
+          cd ActiveMQ-classic/5.16.5-jdbc && docker build . --file Dockerfile --tag activemq-5.16.5-jdbc
 
       - name: Log into registry ${{ env.REGISTRY }}
         uses: docker/login-action@v2
