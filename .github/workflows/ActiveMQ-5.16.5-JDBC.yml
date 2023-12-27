@@ -2,11 +2,9 @@ name: Build ActiveMQ 5.16.5 JDBC docker image
 
 on: 
   push:
-    tags:
-      - 'v*'
+    branches: [ "main" ]
   pull_request:
-    tags:
-      - 'v*'
+    branches: [ "main" ]
 
 env:
   REGISTRY: ghcr.io
@@ -23,6 +21,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Set Release Version
+        run: |
+          echo "BUILD_VERSION=$(date --rfc-3339=date)" >> ${GITHUB_ENV}
       - name: Build the Docker image
         run: 
           cd ActiveMQ-classic/5.16.5-jdbc && docker build . --file Dockerfile --tag activemq-5.16.5-jdbc:${{github.ref_name}}
@@ -40,7 +41,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: 5.16.5-${{github.ref_name}}
+          tags: 5.16.5-${{ env.BUILD_VERSION }}
 
       - name: Build and push Docker image
         id: build-and-push
