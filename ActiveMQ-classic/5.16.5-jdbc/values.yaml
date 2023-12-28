@@ -16,13 +16,13 @@ brokerName: "amq-demo"
 JDBCconfig:
   dbHost: "amq-db-postgres-rw.database.svc.cluster.local"
   #dbPort:
-  dbName: "amq-test"
-  dbUser: "postgres"
+  dbName: "app"
+  dbUser: "app"
   existingDbPasswordSecret: 
     namespace: "database"
-    secretName: "amq-db-postgres-superuser"
+    secretName: "amq-db-postgres-app"
     key: "password"
-  createTables: "true"
+  createTables: "false"
 
 webUI:
   port: 8161

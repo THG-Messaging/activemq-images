@@ -3,6 +3,7 @@ set -x
 # @ToDo make JMX optional and make it more secure
 echo '\nACTIVEMQ_OPTS="$ACTIVEMQ_OPTS -Djava.rmi.server.hostname=localhost -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.rmi.port=1099 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.password.file=${ACTIVEMQ_BASE}/conf/jmx.password -Dcom.sun.management.jmxremote.access.file=${ACTIVEMQ_BASE}/conf/jmx.access -Dhawtio.authenticationEnabled=false -Dhawtio.realm=activemq -Dhawtio.role=admins -Dhawtio.rolePrincipalClasses=org.apache.activemq.jaas.GroupPrincipal"' >> /opt/apache-activemq-5.16.5/bin/env
 sed -i "s/broker_name/${BROKER_NAME}/" /opt/apache-activemq-5.16.5/conf/activemq.xml
+sed -i "s/node-ID/${BROKER_NAME}/" /opt/apache-activemq-5.16.5/conf/activemq.xml
 sed -i "s/DB_HOST/${DB_HOST}/" /opt/apache-activemq-5.16.5/conf/activemq.xml
 sed -i "s/DB_USERNAME/${DB_USERNAME}/" /opt/apache-activemq-5.16.5/conf/activemq.xml
 sed -i "s/DB_PASSWORD/${DB_PASSWORD}/" /opt/apache-activemq-5.16.5/conf/activemq.xml

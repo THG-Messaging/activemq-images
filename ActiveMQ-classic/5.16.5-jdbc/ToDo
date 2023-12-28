@@ -1,0 +1,2 @@
+In activemq.xml template leaseHolderId
+<lease-database-locker leaseHolderId="node-ID" lockAcquireSleepInterval="10000"/>
