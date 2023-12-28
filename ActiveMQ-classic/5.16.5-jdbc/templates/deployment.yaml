@@ -31,9 +31,13 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
-        - name: logs
-          persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-pvc-amq-logs
+        - name: bridges
+          configMap:
+            name: bridges
+      # volumes:
+      #   - name: logs
+      #     persistentVolumeClaim:
+      #       claimName: {{ .Release.Name }}-pvc-amq-logs
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -75,16 +79,21 @@ spec:
               protocol: TCP
           {{ end }}
           volumeMounts:
-          - name: logs
-            mountPath: "/opt/apache-activemq-{{.Values.image.tag}}/data"
+            - name: bridges
+              mountPath: /opt/apache-activemq-5.16.5/conf/bridges.xml
+              subPath: bridges.xml
+
+          # volumeMounts:
+          # - name: logs
+          #   mountPath: "/opt/apache-activemq-{{.Values.image.tag}}/data"
           livenessProbe:
             tcpSocket:
-               port: {{ .Values.webUI.port }}
+               port: {{ .Values.JMX.port }}
             initialDelaySeconds: 60
             periodSeconds: 15
           readinessProbe:
             tcpSocket:
-               port: {{ .Values.webUI.port }}
+               port: {{ .Values.JMX.port }}
             initialDelaySeconds: 15
             periodSeconds: 15
           env:
