@@ -33,7 +33,7 @@ spec:
       volumes:
         - name: logs
           persistentVolumeClaim:
-            claimName: pvc-amq-logs
+            claimName: {{ .Release.Name }}-pvc-amq-logs
       containers:
         - name: {{ .Chart.Name }}
           securityContext:

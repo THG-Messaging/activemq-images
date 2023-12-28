@@ -60,3 +60,27 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+{{- define "gen.secret" -}}
+{{- $secret := lookup "v1" "Secret" .Release.Namespace "amq-admin-secret" -}}
+{{- if $secret -}}
+{{/*
+   Reusing existing secret data
+*/}}
+{{- $secretData := (get $secret "data") | default dict }}
+{{- $jwtSecret := (get $secretData "amq-admin-secret")  }}
+amq-admin-secret: {{ $jwtSecret | quote }}
+{{- $jwtSecret := (get $secretData "monitor-role-pass") }}
+monitor-role-pass: {{ $jwtSecret | quote }}
+{{- $jwtSecret := (get $secretData "control-role-pass") }}
+control-role-pass: {{ $jwtSecret | quote }}
+{{- else -}}
+{{/*
+    Generate new data
+*/}}
+amq-admin-secret: {{ randAlphaNum 32 | b64enc }}
+monitor-role-pass: {{ randAlphaNum 32 | b64enc }}
+control-role-pass: {{ randAlphaNum 32 | b64enc }}
+{{- end -}}
+{{- end -}}

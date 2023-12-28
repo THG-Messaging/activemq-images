@@ -14,14 +14,14 @@ namespace: "amq"
 brokerName: "amq-demo"
 
 JDBCconfig:
-  dbHost: "postgres-postgresql.amq-test.svc.cluster.local"
+  dbHost: "amq-db-postgres-rw.database.svc.cluster.local"
   #dbPort:
   dbName: "amq-test"
   dbUser: "postgres"
   existingDbPasswordSecret: 
-    namespace: "amq-test"
-    secretName: "postgres-postgresql"
-    key: "postgres-password"
+    namespace: "database"
+    secretName: "amq-db-postgres-superuser"
+    key: "password"
   createTables: "true"
 
 webUI:
