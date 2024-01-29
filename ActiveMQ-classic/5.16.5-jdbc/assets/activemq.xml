@@ -15,6 +15,10 @@
     limitations under the License.
 -->
 <!-- START SNIPPET: heleu -->
+<!DOCTYPE activemq [
+    <!ENTITY bridges SYSTEM "bridges.xml">
+    <!ENTITY authorizations SYSTEM "authorizations.xml">
+]>
 <beans
   xmlns="http://www.springframework.org/schema/beans"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

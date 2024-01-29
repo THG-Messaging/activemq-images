@@ -116,10 +116,12 @@ spec:
                   key: "db-password"
             - name: DB_NAME
               value: {{ .Values.JDBCconfig.dbName }}
-            {{- if or (.Values.JDBCconfig.createTables) (eq (.Values.JDBCconfig.createTables | toString) "<nil>") }} 
+            {{- if eq .Values.JDBCconfig.createTables "true" }} 
+            - name: CREATE_DB_TABLES
+              value: "true"
+            {{ else }}
             - name: CREATE_DB_TABLES
               value: "false"
-               # reikia padaryti else su value="false"
             {{- end }}
             - name: ACTIVEMQ_ADMIN_PASS
               valueFrom:
