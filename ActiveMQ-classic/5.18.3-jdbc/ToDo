@@ -1,10 +1,3 @@
-In activemq.xml template leaseHolderId
-<lease-database-locker leaseHolderId="node-ID" lockAcquireSleepInterval="10000" />
-
 Need some imroved checks for liveness and readiness probes (now it uses JMX metrics)
 
 Alert when there are no master broker in cluster
-
-Remove service for metrics, or make seperate for each pod
-
-Create DB variable logic in deployment.yaml must be fixed
