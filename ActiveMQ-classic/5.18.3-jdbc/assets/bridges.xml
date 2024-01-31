@@ -1,0 +1,13 @@
+<networkConnectors>
+  <networkConnector name="bridge-SupplyChain"
+                    uri="masterslave:(tcp://gb1-li-intraservactivemq-004.io.thehut.local:61616,tcp://gb1-li-intraservactivemq-005.io.thehut.local:61616)"
+                    dynamicOnly="true" decreaseNetworkConsumerPriority="true" networkTTL="2"
+                    suppressDuplicateQueueSubscriptions="true">
+      <dynamicallyIncludedDestinations>
+          <queue physicalName="tyche.site.availability.change.queue"/>
+          <queue physicalName="tyche.site.availability.queue"/>
+          <queue physicalName="tyche.tracked.lead.time.events"/>
+          <queue physicalName="Consumer.stocksync.VirtualTopic.stocksync.stock.sync.line.queue"/>
+      </dynamicallyIncludedDestinations>
+  </networkConnector>
+</networkConnectors>

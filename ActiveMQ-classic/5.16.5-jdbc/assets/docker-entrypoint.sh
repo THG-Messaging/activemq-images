@@ -37,4 +37,4 @@ sed -i "s/admin: admin, admin/admin: ${ACTIVEMQ_ADMIN_PASS}, admin/g" $ACTIVEMQ_
 if [ "$METRICS_ENABLED" = true ] ; then
 java -jar ${CONTAINER_METRICS}/jmx_prometheus_httpserver-0.17.2.jar 12345 ${CONTAINER_METRICS}/config.yaml &
 fi
-bin/activemq console
+bin/activemq console xbean:conf/activemq.xml?validate=false

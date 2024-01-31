@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: activemq-jdbc-configmap
+# data:
+#     BROKER_NAME: "tepstelis"
+#     DB_HOST: "postgresql-0"
+#     DB_USERNAME: "postgres"
+#     DB_PASSWORD: "JntmfUYy5r"
+#     DB_NAME: "postgres"
+#     CREATE_DB_TABLES: "true"
+#     ACTIVEMQ_ADMIN_PASS: ""
+

@@ -14,10 +14,8 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<!-- START SNIPPET: heleu -->
 <!DOCTYPE activemq [
     <!ENTITY bridges SYSTEM "bridges.xml">
-    <!ENTITY authorizations SYSTEM "authorizations.xml">
 ]>
 <beans
   xmlns="http://www.springframework.org/schema/beans"
@@ -90,6 +88,11 @@
         <managementContext>
             <managementContext createConnector="false"/>
         </managementContext>
+
+         <!--
+            Import configuration for bridging between datacentres
+        -->
+        &bridges;
 
         <!--
             Configure message persistence for the broker. The default persistence
