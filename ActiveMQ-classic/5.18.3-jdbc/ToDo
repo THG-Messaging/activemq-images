@@ -1,3 +1,3 @@
-Need some imroved checks for liveness and readiness probes (now it uses JMX metrics)
+Need some imroved checks for liveness and readiness probes (now it uses JMX metrics port)
 
 Alert when there are no master broker in cluster

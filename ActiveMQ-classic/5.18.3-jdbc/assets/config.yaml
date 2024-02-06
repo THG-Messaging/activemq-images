@@ -7,6 +7,8 @@ whitelistObjectNames:
   - "org.apache.activemq:destinationType=Topic,*"
   - "org.apache.activemq:type=Broker,brokerName=*"
   - "org.apache.activemq:type=Topic,brokerName=*"
+  - "org.apache.activemq:type=Broker,brokerName=*,service=*"
+
 # @ToDo take host from ENV
 hostPort: localhost:1099
 username: monitorRole
@@ -36,3 +38,9 @@ rules:
   name: activemq_$2_usage_ratio
   type: GAUGE
   valueFactor: 0.01
+
+- pattern: org.apache.activemq<type=Broker, brokerName=(\S*), service=Health><>(\w+)
+  name: activemq_status
+
+- pattern: org.apache.activemq<type=Broker, brokerName=(\S*)><>Uptime
+  name: activemq_uptime
