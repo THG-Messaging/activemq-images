@@ -22,7 +22,8 @@ ENV BROKER_NAME \
     STOMP_ENABLED \
     STOMP_PORT \
     MQTT_ENABLED \
-    MQTT_PORT
+    MQTT_PORT \
+    SCHEDULER_SUPPORT
     
 RUN apt update
 RUN apt install wget vim -y \
@@ -37,7 +38,6 @@ RUN tar -xzf apache-activemq-5.18.3-bin.tar.gz -C $ACTIVEMQ_WORKDIR \
     && mv HikariCP-5.0.0.jar $ACTIVEMQ_WORKDIR/apache-activemq-5.18.3/lib/optional/HikariCP-5.0.0.jar \
     && mv postgresql-42.3.1.jar $ACTIVEMQ_WORKDIR/apache-activemq-5.18.3/lib/optional/postgresql-42.3.1.jar\
     && mv jmx_prometheus_httpserver-0.17.2.jar $CONTAINER_METRICS
-# ToDoremove .tar
 # users and hosts should go through vars through entrypoint?    
 
 COPY assets/activemq.xml $ACTIVEMQ_WORKDIR/apache-activemq-5.18.3/conf/activemq.xml

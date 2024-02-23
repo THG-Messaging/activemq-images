@@ -8,7 +8,7 @@ image:
   repository: ghcr.io/thg-messaging/activemq-images/activemq-jdbc
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "5.18.3-2024-01-31"
+  tag: "5.18.3-2024-02-23"
 
 namespace: "amq"
 brokerName: "amq-demo"
@@ -22,7 +22,10 @@ JDBCconfig:
     namespace: "database"
     secretName: "amq-db-postgres-app"
     key: "password"
-  createTables: "false"
+  createTables: "true"
+
+schedulerSupport:
+  enabled: true
 
 webUI:
   port: 8161

@@ -129,6 +129,8 @@ spec:
                   name: amq-admin-secret
                   key: amq-admin-secret
             {{- if or (.Values.metrics.enabled) (eq (.Values.metrics.enabled | toString) "<nil>") }} 
+            - name: SCHEDULER_SUPPORT
+              value: {{ .Values.schedulerSupport.enabled }} 
             - name: METRICS_ENABLED
               value: "true" 
             {{- end }}           

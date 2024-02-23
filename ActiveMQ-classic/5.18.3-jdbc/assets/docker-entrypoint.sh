@@ -8,6 +8,11 @@ sed -i "s/DB_HOST/${DB_HOST}/" /opt/apache-activemq-5.18.3/conf/activemq.xml
 sed -i "s/DB_USERNAME/${DB_USERNAME}/" /opt/apache-activemq-5.18.3/conf/activemq.xml
 sed -i "s/DB_PASSWORD/${DB_PASSWORD}/" /opt/apache-activemq-5.18.3/conf/activemq.xml
 sed -i "s/DB_NAME/${DB_NAME}/" /opt/apache-activemq-5.18.3/conf/activemq.xml
+if [ "$SCHEDULER_SUPPORT" = true ] ; then
+sed -i "s/SCHEDULER_SUPPORT/${SCHEDULER_SUPPORT}/" /opt/apache-activemq-5.18.3/conf/activemq.xml
+else
+sed -i "s/SCHEDULER_SUPPORT/false/" /opt/apache-activemq-5.18.3/conf/activemq.xml
+fi
 if [ "$OPENWIRE_ENABLED" = true ] ; then
 sed -i "s/CREATE_DB_TABLES/${CREATE_DB_TABLES}/" /opt/apache-activemq-5.18.3/conf/activemq.xml
 else

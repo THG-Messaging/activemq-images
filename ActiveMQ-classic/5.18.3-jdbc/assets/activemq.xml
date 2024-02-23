@@ -55,7 +55,7 @@
 	<!--
         The <broker> element is used to configure the ActiveMQ broker.
     -->
-    <broker xmlns="http://activemq.apache.org/schema/core" useJmx="USE_JMX" brokerName="broker_name" dataDirectory="${activemq.data}">
+    <broker xmlns="http://activemq.apache.org/schema/core" useJmx="USE_JMX" brokerName="BROKER_NAME" schedulerSupport="SCHEDULER_SUPPORT" dataDirectory="${activemq.data}" schedulerDirectory="/opt/apache-activemq-5.18.3/schedulerData">
 		<destinationPolicy>
 			<policyMap>
 				<policyEntries>
