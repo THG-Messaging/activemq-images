@@ -34,10 +34,10 @@ spec:
         - name: bridges
           configMap:
             name: bridges
-      # volumes:
-      #   - name: logs
-      #     persistentVolumeClaim:
-      #       claimName: {{ .Release.Name }}-pvc-amq-logs
+      volumes:
+        - name: scheduler-messages
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-pvc-scheduled-messages
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -83,9 +83,9 @@ spec:
               mountPath: /opt/apache-activemq-5.18.3/conf/bridges.xml
               subPath: bridges.xml
 
-          # volumeMounts:
-          # - name: logs
-          #   mountPath: "/opt/apache-activemq-{{.Values.image.tag}}/data"
+          volumeMounts:
+          - name: scheduler-messages
+            mountPath: "/opt/apache-activemq-5.18.3/schedulerData"
           livenessProbe:
             tcpSocket:
                port: {{ .Values.JMX.port }}
@@ -128,9 +128,11 @@ spec:
                 secretKeyRef:
                   name: amq-admin-secret
                   key: amq-admin-secret
-            {{- if or (.Values.metrics.enabled) (eq (.Values.metrics.enabled | toString) "<nil>") }} 
+            {{- if or (.Values.schedulerSupport.enabled) (eq (.Values.schedulerSupport.enabled | toString) "<nil>") }} 
             - name: SCHEDULER_SUPPORT
-              value: {{ .Values.schedulerSupport.enabled }} 
+              value: "true" 
+            {{- end }}
+            {{- if or (.Values.metrics.enabled) (eq (.Values.metrics.enabled | toString) "<nil>") }} 
             - name: METRICS_ENABLED
               value: "true" 
             {{- end }}           
