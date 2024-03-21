@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -5,3 +6,4 @@ metadata:
 data:
   bridges.xml: |-
 {{ .Files.Get "bridges.xml" | indent 4}}
+...

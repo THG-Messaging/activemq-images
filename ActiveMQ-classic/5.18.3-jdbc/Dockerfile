@@ -45,6 +45,10 @@ COPY assets/bridges.xml $ACTIVEMQ_WORKDIR/apache-activemq-5.18.3/conf/bridges.xm
 COPY assets/docker-entrypoint.sh /
 COPY assets/config.yaml $CONTAINER_METRICS/config.yaml
 COPY assets/conf $ACTIVEMQ_WORKDIR/apache-activemq-5.18.3/conf
+
+#For testing purposes only, must be removed!
+# COPY assets/security $ACTIVEMQ_WORKDIR/apache-activemq-5.18.3/conf/security
+
 RUN chmod -R 600 $ACTIVEMQ_WORKDIR/apache-activemq-5.18.3/conf/jmx.access $ACTIVEMQ_WORKDIR/apache-activemq-5.18.3/conf/jmx.password
 RUN chmod 777 /docker-entrypoint.sh
 

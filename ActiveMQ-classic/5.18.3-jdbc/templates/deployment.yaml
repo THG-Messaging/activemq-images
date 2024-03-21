@@ -34,10 +34,15 @@ spec:
         - name: bridges
           configMap:
             name: bridges
-      volumes:
+        - name: users
+          secret:
+            secretName: {{ .Values.secrets.usersSecretName }}
+        - name: groups
+          secret:
+            secretName: {{ .Values.secrets.groupSecretName }}
         - name: scheduler-messages
           persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-pvc-scheduled-messages
+            claimName: {{ .Release.Name }}-pvc-scheduler-messages
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -82,10 +87,12 @@ spec:
             - name: bridges
               mountPath: /opt/apache-activemq-5.18.3/conf/bridges.xml
               subPath: bridges.xml
-
-          volumeMounts:
-          - name: scheduler-messages
-            mountPath: "/opt/apache-activemq-5.18.3/schedulerData"
+            - name: users
+              mountPath: /opt/apache-activemq-5.18.3/conf/security/users
+            - name: groups
+              mountPath: /opt/apache-activemq-5.18.3/conf/security/groups
+            - name: scheduler-messages
+              mountPath: "/opt/apache-activemq-5.18.3/schedulerData"
           livenessProbe:
             tcpSocket:
                port: {{ .Values.JMX.port }}

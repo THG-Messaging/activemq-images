@@ -75,6 +75,27 @@
 			</policyMap>
 		</destinationPolicy>
 
+<!-- 
+		<!-- DLQ handling part -->
+		<destinationPolicy>
+			<policyMap>
+			<policyEntries>
+				<!-- Set the following policy on all queues using the '>' wildcard -->
+				<policyEntry queue=">">
+				<deadLetterStrategy>
+					<individualDeadLetterStrategy queuePrefix="" queueSuffix=".DLQ" useQueueForQueueMessages="true" />
+				</deadLetterStrategy>
+				</policyEntry>
+								
+				<policyEntry queue=">.DLQ">
+				<deadLetterStrategy>
+					<individualDeadLetterStrategy processExpired="false" expiration="60" />
+				</deadLetterStrategy>
+				</policyEntry>
+
+			</policyEntries>
+			</policyMap>
+		</destinationPolicy> -->
 		<!--
             The managementContext is used to configure how ActiveMQ is exposed in
             JMX. By default, ActiveMQ uses the MBean server that is started by
@@ -135,6 +156,23 @@
 			<bean xmlns="http://www.springframework.org/schema/beans" class="org.apache.activemq.hooks.SpringContextHook" />
 		</shutdownHooks>
 
+		<plugins>
+    		<runtimeConfigurationPlugin checkPeriod="1000" />
+    		<jaasAuthenticationPlugin configuration="activemq-domain" />
+			<authorizationPlugin>
+				<map>
+					<authorizationMap>
+
+						<authorizationEntries>
+							<authorizationEntry queue=">"                   read="applications,admins" write="applications,admins" admin="admins,applications" />
+							<authorizationEntry topic=">"                   read="applications,admins" write="applications,admins" admin="admins,applications" />
+							<authorizationEntry topic="ActiveMQ.Advisory.>" read="*" write="*" admin="*"/>
+						</authorizationEntries>
+
+					</authorizationMap>
+				</map>
+			</authorizationPlugin>
+    	</plugins>
 
 	</broker>
 	<!--

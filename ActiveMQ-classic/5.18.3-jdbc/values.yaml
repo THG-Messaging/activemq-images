@@ -22,10 +22,13 @@ JDBCconfig:
     namespace: "database"
     secretName: "amq-db-postgres-app"
     key: "password"
-  createTables: "true"
+  createTables: "false"
 
 schedulerSupport:
   enabled: true
+  storageClass: "csi-cinder-sc-delete"
+  size: 10Gi
+
 
 webUI:
   port: 8161
@@ -54,6 +57,10 @@ transportConnectors:
   mqtt:
     enabled: true
     port: 1883
+
+secrets:
+  usersSecretName: "amq-external-users"
+  groupSecretName: "amq-external-groups"
 
 imagePullSecrets: []
 nameOverride: ""

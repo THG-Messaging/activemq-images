@@ -79,8 +79,62 @@ control-role-pass: {{ $jwtSecret | quote }}
 {{/*
     Generate new data
 */}}
-amq-admin-secret: {{ randAlphaNum 32 | b64enc }}
-monitor-role-pass: {{ randAlphaNum 32 | b64enc }}
-control-role-pass: {{ randAlphaNum 32 | b64enc }}
+amq-admin-secret: {{ randAlphaNum 32 }}
+monitor-role-pass: {{ randAlphaNum 32 }}
+control-role-pass: {{ randAlphaNum 32 }}
+{{- end -}}
+{{- end -}}
+
+
+{{- define "users.secret" -}}
+{{- $secretusers := lookup "v1" "Secret" .Release.Namespace "amq-users-secret" -}}
+{{- if $secretusers -}}
+{{/*
+   Reusing existing secret data
+*/}}
+{{- $secretDatausers := (get $secretusers "data") | default dict }}
+{{- $jwtSecretusers := (get $secretDatausers "admin")  }}
+admin: {{ $jwtSecretusers | quote }}
+{{- $jwtSecretusers := (get $secretDatausers "system") }}
+system: {{ $jwtSecretusers | quote }}
+{{- $jwtSecretusers := (get $secretDatausers "user") }}
+user: {{ $jwtSecretusers | quote }}
+{{- $jwtSecretusers := (get $secretDatausers "application") }}
+application: {{ $jwtSecretusers | quote }}
+{{- $jwtSecretusers := (get $secretDatausers "guest") }}
+guest: {{ $jwtSecretusers | quote }}
+{{- else -}}
+{{/*
+    Generate new data
+*/}}
+admin: {{ randAlphaNum 32 }}
+system: {{ randAlphaNum 32 }}
+user: {{ randAlphaNum 32 }}
+application: {{ randAlphaNum 32 }}
+guest: {{ randAlphaNum 32 }}
+{{- end -}}
+{{- end -}}
+
+
+{{- define "groups.secret" -}}
+{{- $secretgroups := lookup "v1" "Secret" .Release.Namespace "amq-groups-secret" -}}
+{{- if $secretgroups -}}
+{{/*
+   Reusing existing secret data
+*/}}
+{{- $secretDatagroups := (get $secretgroups "data") | default dict }}
+{{- $jwtSecretgroups := (get $secretDatagroups "admins")  }}
+admins: {{ $jwtSecretgroups | quote }}
+{{- $jwtSecretgroups := (get $secretDatagroups "users") }}
+users: {{ $jwtSecretgroups | quote }}
+{{- $jwtSecretgroups := (get $secretDatagroups "applications") }}
+applications: {{ $jwtSecretgroups | quote }}
+{{- else -}}
+{{/*
+    Generate new data
+*/}}
+admins: admin,system
+users: user,admin
+applications: application
 {{- end -}}
 {{- end -}}
