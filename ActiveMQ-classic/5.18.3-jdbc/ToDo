@@ -3,3 +3,4 @@ Need some imroved checks for liveness and readiness probes (now it uses JMX metr
 Alert when there are no master broker in cluster
 Scheduler kadaDB messages should be shared between broker nodes
 Create init container to check if tables exists, if not then create tables???
+Metrics config "config.yaml" should go as configmap in k8s

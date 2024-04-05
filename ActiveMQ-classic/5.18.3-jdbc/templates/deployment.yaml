@@ -104,10 +104,6 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 15
           env:
-            - name: TEST
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
             - name: BROKER_NAME
               valueFrom:
                 fieldRef:
@@ -135,9 +131,12 @@ spec:
                 secretKeyRef:
                   name: amq-admin-secret
                   key: amq-admin-secret
-            {{- if or (.Values.schedulerSupport.enabled) (eq (.Values.schedulerSupport.enabled | toString) "<nil>") }} 
+            {{- if eq .Values.schedulerSupport.enabled "true" }} 
             - name: SCHEDULER_SUPPORT
               value: "true" 
+            {{ else }}
+            - name: SCHEDULER_SUPPORT
+              value: "false" 
             {{- end }}
             {{- if or (.Values.metrics.enabled) (eq (.Values.metrics.enabled | toString) "<nil>") }} 
             - name: METRICS_ENABLED
