@@ -23,7 +23,8 @@ ENV BROKER_NAME \
     STOMP_PORT \
     MQTT_ENABLED \
     MQTT_PORT \
-    SCHEDULER_SUPPORT
+    SCHEDULER_SUPPORT \
+    JAVA_VERSION
     
 RUN apt update
 RUN apt install wget vim -y \
