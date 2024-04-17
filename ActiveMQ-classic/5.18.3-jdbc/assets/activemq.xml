@@ -75,7 +75,6 @@
 			</policyMap>
 		</destinationPolicy>
 
-<!-- 
 		<!-- DLQ handling part -->
 		<destinationPolicy>
 			<policyMap>
