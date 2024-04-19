@@ -24,11 +24,14 @@ jobs:
       - name: Set Release Version
         run: |
           echo "BUILD_VERSION=$(date --rfc-3339=date)" >> ${GITHUB_ENV}
-      - name: Set docker build args
+      - name: Read VERSION file
+        id: getversions
         run: |
-          cd ActiveMQ-classic/5.18.3-jdbc/dockerImage
-          echo "$(cat versions.env | paste -s -d " ")" >> ${GITHUB_ENV}
-          echo $GITHUB_ENV
+          echo "version=$(cat versions.env | paste -s -d " ")" >> $GITHUB_OUTPUT
+      - name: Echo VERSION var
+        id: echo
+        run: |
+          echo ${{ steps.getversions.outputs.version }}
       # - name: Build the Docker image
       #   run: 
       #     cd ActiveMQ-classic/5.18.3-jdbc/dockerImage && docker build . --file Dockerfile --tag activemq-5.18.3-jdbc:${{github.ref_name}} $(cat versions.env | sed 's@^@--build-arg @g' | paste -s -d " ")
