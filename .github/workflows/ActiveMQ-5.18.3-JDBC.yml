@@ -26,6 +26,7 @@ jobs:
           echo "BUILD_VERSION=$(date --rfc-3339=date)" >> ${GITHUB_ENV}
       - name: Set docker build args
         run: |
+          cd ActiveMQ-classic/5.18.3-jdbc/dockerImage
           echo "$(cat versions.env | paste -s -d " ")" >> ${BUILD_ARGS}
           echo ${BUILD_ARGS}
       # - name: Build the Docker image
