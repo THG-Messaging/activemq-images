@@ -31,8 +31,6 @@ ENV BROKER_NAME \
     MQTT_PORT \
     SCHEDULER_SUPPORT
 
-RUN echo $AMQ_VERSION
-RUN echo ${AMQ_VERSION}
 RUN apt update
 RUN apt install wget vim -y \
     && mkdir -p ${ACTIVEMQ_WORKDIR} \
@@ -45,8 +43,7 @@ RUN tar -xzf apache-activemq-${AMQ_VERSION}-bin.tar.gz -C ${ACTIVEMQ_WORKDIR} \
     && rm \apache-activemq-${AMQ_VERSION}-bin.tar.gz \
     && mv HikariCP-${HIKARICP_VERSION}.jar ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/lib/optional/HikariCP-${HIKARICP_VERSION}.jar \
     && mv postgresql-${POSTGRESQL_JDBC_DRIVER}.jar ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/lib/optional/postgresql-${POSTGRESQL_JDBC_DRIVER}.jar\
-    && mv jmx_prometheus_httpserver-${PROM_EXPORTER_VERSION}.jar ${CONTAINER_METRICS}
-# users and hosts should go through vars through entrypoint?    
+    && mv jmx_prometheus_httpserver-${PROM_EXPORTER_VERSION}.jar ${CONTAINER_METRICS}  
 
 COPY assets/activemq.xml ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 COPY assets/bridges.xml ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/bridges.xml
@@ -54,9 +51,6 @@ COPY assets/config.yaml ${CONTAINER_METRICS}/config.yaml
 COPY assets/conf $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf
 
 COPY assets/docker-entrypoint.sh /
-
-#For testing purposes only, must be removed!
-# COPY assets/security $ACTIVEMQ_WORKDIR/apache-activemq-5.18.3/conf/security
 
 RUN chmod -R 600 ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/jmx.access ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/jmx.password
 RUN chmod 777 /docker-entrypoint.sh
