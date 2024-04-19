@@ -21,21 +21,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        
       - name: Set Release Version
         run: |
           echo "BUILD_VERSION=$(date --rfc-3339=date)" >> ${GITHUB_ENV}
-      - name: Read VERSION file
-        id: getversions
-        run: |
-          cd ActiveMQ-classic/5.18.3-jdbc/dockerImage
-          echo "version=$(cat versions.env | paste -s -d " ")" >> $GITHUB_OUTPUT
-      - name: Echo VERSION var
-        id: echo
-        run: |
-          echo ${{ steps.getversions.outputs.version }}
-      # - name: Build the Docker image
-      #   run: 
-      #     cd ActiveMQ-classic/5.18.3-jdbc/dockerImage && docker build . --file Dockerfile --tag activemq-5.18.3-jdbc:${{github.ref_name}} $(cat versions.env | sed 's@^@--build-arg @g' | paste -s -d " ")
 
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
@@ -61,4 +50,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            ${{ steps.getversions.outputs.version }}
+            PROM_EXPORTER_VERSION=0.20.0
+            POSTGRESQL_JDBC_DRIVER=42.7.3
+            AMQ_VERSION=5.18.3
+            HIKARICP_VERSION=5.1.0
