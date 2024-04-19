@@ -7,7 +7,12 @@ services:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
   activemq:
-    build: .
+    build:
+      args:
+        - AMQ_VERSION=$AMQ_VERSION
+        - POSTGRESQL_JDBC_DRIVER=$POSTGRESQL_JDBC_DRIVER
+        - PROM_EXPORTER_VERSION=$PROM_EXPORTER_VERSION
+        - HIKARICP_VERSION=$HIKARICP_VERSION
     ports:
       # WEB UI
       - "8161:8161"
@@ -39,3 +44,6 @@ services:
       - MQTT_ENABLED=${MQTT_ENABLED}
       - MQTT_PORT=${MQTT_PORT}
       - SCHEDULER_SUPPORT=${SCHEDULER_SUPPORT}
+    env_file:
+      - .env
+      - versions.env

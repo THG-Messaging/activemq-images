@@ -26,7 +26,7 @@ jobs:
           echo "BUILD_VERSION=$(date --rfc-3339=date)" >> ${GITHUB_ENV}
       - name: Build the Docker image
         run: 
-          cd ActiveMQ-classic/5.18.3-jdbc && docker build . --file Dockerfile --tag activemq-5.18.3-jdbc:${{github.ref_name}}
+          cd ActiveMQ-classic/5.18.3-jdbc/dockerImage && docker build . --file Dockerfile --tag activemq-5.18.3-jdbc:${{github.ref_name}} $(cat versions.env | sed 's@^@--build-arg @g' | paste -s -d " ")
 
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
@@ -47,7 +47,7 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v3
         with:
-          context: ./ActiveMQ-classic/5.18.3-jdbc
+          context: ./ActiveMQ-classic/5.18.3-jdbc/dockerImage
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

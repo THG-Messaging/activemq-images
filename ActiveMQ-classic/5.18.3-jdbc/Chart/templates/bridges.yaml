@@ -5,5 +5,4 @@ metadata:
   name: bridges
 data:
   bridges.xml: |-
-{{ .Files.Get "bridges.xml" | indent 4}}
-...
+    <!-- Bridges config -->

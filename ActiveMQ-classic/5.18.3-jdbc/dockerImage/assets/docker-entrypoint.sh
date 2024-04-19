@@ -2,7 +2,7 @@
 set -x
 # @ToDo make JMX optional and make it more secure
 echo '\nACTIVEMQ_OPTS="$ACTIVEMQ_OPTS -Djava.rmi.server.hostname=localhost -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.rmi.port=1099 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.password.file=${ACTIVEMQ_BASE}/conf/jmx.password -Dcom.sun.management.jmxremote.access.file=${ACTIVEMQ_BASE}/conf/jmx.access -Dhawtio.authenticationEnabled=false -Dhawtio.realm=activemq -Dhawtio.role=admins -Dhawtio.rolePrincipalClasses=org.apache.activemq.jaas.GroupPrincipal"' >> /opt/apache-activemq-5.18.3/bin/env
-sed -i "s/broker_name/${BROKER_NAME}/" /opt/apache-activemq-5.18.3/conf/activemq.xml
+sed -i "s/BROKER_NAME/${BROKER_NAME}/" /opt/apache-activemq-5.18.3/conf/activemq.xml
 sed -i "s/node-ID/${BROKER_NAME}/" /opt/apache-activemq-5.18.3/conf/activemq.xml
 sed -i "s/DB_HOST/${DB_HOST}/" /opt/apache-activemq-5.18.3/conf/activemq.xml
 sed -i "s/DB_USERNAME/${DB_USERNAME}/" /opt/apache-activemq-5.18.3/conf/activemq.xml
@@ -40,6 +40,6 @@ sed -i 's/<property name="authenticate" value="true" \/\>/<property name="authen
 sed -i "s/admin: admin, admin/admin: ${ACTIVEMQ_ADMIN_PASS}, admin/g" $ACTIVEMQ_WORKDIR/apache-activemq-5.18.3/conf/jetty-realm.properties
 # @ToDo make prom exporter as optional
 if [ "$METRICS_ENABLED" = true ] ; then
-java -jar ${CONTAINER_METRICS}/jmx_prometheus_httpserver-0.17.2.jar 12345 ${CONTAINER_METRICS}/config.yaml &
+java -jar ${CONTAINER_METRICS}/jmx_prometheus_httpserver-${PROM_EXPORTER_VERSION}.jar 12345 ${CONTAINER_METRICS}/config.yaml &
 fi
 bin/activemq console 'xbean:../conf/activemq.xml?validate=false'
