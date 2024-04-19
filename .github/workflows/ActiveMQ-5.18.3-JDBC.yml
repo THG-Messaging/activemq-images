@@ -27,6 +27,7 @@ jobs:
       - name: Read VERSION file
         id: getversions
         run: |
+          cd ActiveMQ-classic/5.18.3-jdbc/dockerImage
           echo "version=$(cat versions.env | paste -s -d " ")" >> $GITHUB_OUTPUT
       - name: Echo VERSION var
         id: echo
