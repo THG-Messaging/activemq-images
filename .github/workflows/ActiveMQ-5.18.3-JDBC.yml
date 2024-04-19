@@ -27,8 +27,8 @@ jobs:
       - name: Set docker build args
         run: |
           cd ActiveMQ-classic/5.18.3-jdbc/dockerImage
-          echo "$(cat versions.env | paste -s -d " ")" >> ${GITHUB_ENV}
-          echo ${GITHUB_ENV}
+          echo "$(cat versions.env | paste -s -d " ")" >> ${GITHUB_ENV.BUILD_ARGS}
+          echo $GITHUB_ENV
       # - name: Build the Docker image
       #   run: 
       #     cd ActiveMQ-classic/5.18.3-jdbc/dockerImage && docker build . --file Dockerfile --tag activemq-5.18.3-jdbc:${{github.ref_name}} $(cat versions.env | sed 's@^@--build-arg @g' | paste -s -d " ")
