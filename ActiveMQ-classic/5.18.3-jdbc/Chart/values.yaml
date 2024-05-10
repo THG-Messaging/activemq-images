@@ -17,10 +17,10 @@ JDBCconfig:
   dbHost: "amq-db-postgres-rw.database.svc.cluster.local"
   #dbPort:
   dbName: "app"
-  dbUser: "app"
+  dbUser: "postgres"
   existingDbPasswordSecret: 
     namespace: "database"
-    secretName: "amq-db-postgres-app"
+    secretName: "amq-db-postgres-superuser"
     key: "password"
   createTables: "false"
 
