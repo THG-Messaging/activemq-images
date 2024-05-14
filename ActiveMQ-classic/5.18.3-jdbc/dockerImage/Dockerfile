@@ -1,6 +1,4 @@
-# @ToDo maybe use Alpine for lightweight?
-#FROM alpine 
-FROM adoptopenjdk/openjdk11-openj9
+FROM adoptopenjdk/openjdk11-openj9:alpine-jre
 
 ARG AMQ_VERSION \
     PROM_EXPORTER_VERSION \
@@ -31,8 +29,7 @@ ENV BROKER_NAME \
     MQTT_PORT \
     SCHEDULER_SUPPORT
 
-RUN apt update
-RUN apt install wget vim -y \
+RUN apk add wget \
     && mkdir -p ${ACTIVEMQ_WORKDIR} \
     && mkdir -p ${CONTAINER_METRICS}
 RUN wget https://archive.apache.org/dist/activemq/${AMQ_VERSION}/apache-activemq-${AMQ_VERSION}-bin.tar.gz \
@@ -40,9 +37,9 @@ RUN wget https://archive.apache.org/dist/activemq/${AMQ_VERSION}/apache-activemq
     && wget https://repo1.maven.org/maven2/org/postgresql/postgresql/${POSTGRESQL_JDBC_DRIVER}/postgresql-${POSTGRESQL_JDBC_DRIVER}.jar \
     && wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_httpserver/${PROM_EXPORTER_VERSION}/jmx_prometheus_httpserver-${PROM_EXPORTER_VERSION}.jar
 RUN tar -xzf apache-activemq-${AMQ_VERSION}-bin.tar.gz -C ${ACTIVEMQ_WORKDIR} \
-    && rm \apache-activemq-${AMQ_VERSION}-bin.tar.gz \
+    && rm apache-activemq-${AMQ_VERSION}-bin.tar.gz \
     && mv HikariCP-${HIKARICP_VERSION}.jar ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/lib/optional/HikariCP-${HIKARICP_VERSION}.jar \
-    && mv postgresql-${POSTGRESQL_JDBC_DRIVER}.jar ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/lib/optional/postgresql-${POSTGRESQL_JDBC_DRIVER}.jar\
+    && mv postgresql-${POSTGRESQL_JDBC_DRIVER}.jar ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/lib/optional/postgresql-${POSTGRESQL_JDBC_DRIVER}.jar \
     && mv jmx_prometheus_httpserver-${PROM_EXPORTER_VERSION}.jar ${CONTAINER_METRICS}  
 
 COPY assets/activemq.xml ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
@@ -53,10 +50,10 @@ COPY assets/conf $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf
 COPY assets/docker-entrypoint.sh /
 
 RUN chmod -R 600 ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/jmx.access ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/jmx.password
+RUN addgroup -S activemq && adduser -S activemq -G activemq
+RUN chown -R activemq:activemq ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}
 RUN chmod 777 /docker-entrypoint.sh
 
 WORKDIR ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/
-
-EXPOSE 8161 61616
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

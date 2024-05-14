@@ -1,6 +1,7 @@
-.env
 Helm/
 jmx_prometheus_httpserver-0.20.0.jar
 config-test-local.yaml
 certs/
 security/
+**/.env
+**/versions.env
