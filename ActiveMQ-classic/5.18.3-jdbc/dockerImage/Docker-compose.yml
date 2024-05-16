@@ -1,12 +1,14 @@
 version: "3.8"
 services:
   postgres:
+    container_name: postgres
     image: postgres:14.1-alpine
     restart: always
     environment:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
   activemq:
+    container_name: activemq
     depends_on:
     - postgres
     links:
