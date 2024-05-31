@@ -42,7 +42,7 @@ sed -i "s/admin: admin, admin/admin: ${ACTIVEMQ_ADMIN_PASS}, admin/g" $ACTIVEMQ_
 sed -i "s/activemq.username=system/activemq.username=admin/" /opt/apache-activemq-${AMQ_VERSION}/conf/credentials.properties
 sed -i "s/activemq.password=manager/activemq.password=${ACTIVEMQ_ADMIN_PASS}/" /opt/apache-activemq-${AMQ_VERSION}/conf/credentials.properties
 
-sed -i "s/admin=admin/admin=${ACTIVEMQ_ADMIN_PASS}/" /opt/apache-activemq-${AMQ_VERSION}/conf/users.properties
+sed -i "s/admin=admin/admin=${ACTIVEMQ_ADMIN_PASS}/" /opt/apache-activemq-${AMQ_VERSION}/conf/security/users/users.properties
 
 # @ToDo make prom exporter as optional
 if [ "$METRICS_ENABLED" = true ] ; then
