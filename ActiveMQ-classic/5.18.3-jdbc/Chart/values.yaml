@@ -8,10 +8,11 @@ image:
   repository: ghcr.io/thg-messaging/activemq-images/activemq-jdbc
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "5.18.3-2024-04-19"
+  tag: "5.18.3-2024-05-27"
 
 namespace: "amq"
 brokerName: "amq-demo"
+versionAMQ: 5.18.3
 
 JDBCconfig:
   dbHost: "amq-db-postgres-rw.database.svc.cluster.local"
@@ -27,7 +28,7 @@ JDBCconfig:
 schedulerSupport:
   enabled: "true"
   storageClass: "csi-cinder-sc-delete"
-  size: 10Gi
+  size: 2Gi
 
 
 webUI:

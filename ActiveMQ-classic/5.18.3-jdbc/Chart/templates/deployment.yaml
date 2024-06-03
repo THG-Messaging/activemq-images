@@ -28,12 +28,12 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "ActiveMQ-JDBC.serviceAccountName" . }}
-      securityContext:
+      securityContext: 
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
         - name: bridges
-          configMap:
-            name: bridges
+          secret:
+            secretName: amq-bridges
         - name: users
           secret:
             secretName: {{ .Values.secrets.usersSecretName }}
@@ -104,6 +104,8 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 15
           env:
+            - name: AMQ_VERSION
+              value: {{ .Values.versionAMQ }}
             - name: BROKER_NAME
               valueFrom:
                 fieldRef:
