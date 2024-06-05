@@ -97,7 +97,7 @@ spec:
             - name: scheduler-messages
               mountPath: "/opt/apache-activemq-5.18.3/schedulerData"
             - name: jmx-metrics
-              mountPath: "/opt/metrics/config.yaml"
+              mountPath: "/opt/metrics/"
               subPath: config.yaml
           livenessProbe:
             tcpSocket:
