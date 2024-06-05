@@ -43,6 +43,9 @@ spec:
         - name: scheduler-messages
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-pvc-scheduler-messages
+        - name : jmx-metrics
+          configMap:
+            name: jmx-metrics
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -93,6 +96,9 @@ spec:
               mountPath: /opt/apache-activemq-5.18.3/conf/security/groups
             - name: scheduler-messages
               mountPath: "/opt/apache-activemq-5.18.3/schedulerData"
+            - name: jmx-metrics
+              mountPath: "/opt/metrics/config.yaml"
+              subPath: config.yaml
           livenessProbe:
             tcpSocket:
                port: {{ .Values.JMX.port }}
