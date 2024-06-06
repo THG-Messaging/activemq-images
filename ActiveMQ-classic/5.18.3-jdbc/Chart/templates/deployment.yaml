@@ -112,6 +112,8 @@ spec:
           env:
             - name: AMQ_VERSION
               value: {{ .Values.versionAMQ }}
+            - name: PROM_EXPORTER_VERSION
+              value: {{ .Values.prometheusExporterVersion }}
             - name: BROKER_NAME
               valueFrom:
                 fieldRef:

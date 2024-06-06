@@ -13,6 +13,7 @@ image:
 namespace: "amq"
 brokerName: "amq-demo"
 versionAMQ: 5.18.3
+prometheusExporterVersion: 0.20.0
 
 JDBCconfig:
   dbHost: "amq-db-postgres-rw.database.svc.cluster.local"
