@@ -23,7 +23,7 @@ JDBCconfig:
     namespace: "database"
     secretName: "amq-db-postgres-superuser"
     key: "password"
-  createTables: "false"
+  createTables: "true"
 
 schedulerSupport:
   enabled: "true"
