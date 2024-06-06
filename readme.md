@@ -24,6 +24,7 @@ STOMP_PORT | 61613
 MQTT_ENABLED | false
 MQTT_PORT | 11133
 SCHEDULER_SUPPORT | true
+DEBUG | true
 
 ## versions.env file variables sample
 Name     | Value

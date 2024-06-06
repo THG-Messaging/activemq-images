@@ -187,6 +187,8 @@ spec:
               value: "true"
             - name: MQTT_PORT
               value: "{{ .Values.transportConnectors.mqtt.port }}"
+            - name: DEBUG
+              value: "{{ .Values.debug.enabled }}"
             {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
