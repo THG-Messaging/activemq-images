@@ -8,7 +8,7 @@ image:
   repository: ghcr.io/thg-messaging/activemq-images/activemq-jdbc
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  tag: "5.18.3-2024-06-06"
 
 namespace: "amq"
 brokerName: "amq-demo"
