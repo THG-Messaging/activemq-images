@@ -8,12 +8,11 @@ image:
   repository: ghcr.io/thg-messaging/activemq-images/activemq-jdbc
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "5.18.3-2024-06-06"
+  tag: "5.18.3-2024-06-14"
 
 namespace: "amq"
 brokerName: "amq-demo"
 versionAMQ: 5.18.3
-prometheusExporterVersion: 0.20.0
 
 JDBCconfig:
   dbHost: "amq-db-postgres-rw.database.svc.cluster.local"
@@ -61,6 +60,12 @@ transportConnectors:
   mqtt:
     enabled: true
     port: 1883
+
+jmx_exporter:
+  hostname: localhost
+  port: 1099
+  monitor_role_pass: pa$$wd
+  service_port: 9200
 
 secrets:
   usersSecretName: "amq-external-users"
