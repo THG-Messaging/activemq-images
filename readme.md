@@ -11,7 +11,6 @@ DB_PASSWORD | mysecretpassword
 DB_NAME | postgres
 CREATE_DB_TABLES | false
 ACTIVEMQ_ADMIN_PASS | mysecretpassword
-METRICS_ENABLED | true
 USE_JMX | true
 CONTROL_ROLE_PASS | mypassword
 MONITOR_ROLE_PASS | mypassword
@@ -33,3 +32,13 @@ PROM_EXPORTER_VERSION | 0.20.0
 POSTGRESQL_JDBC_DRIVER | 42.7.3
 AMQ_VERSION | 5.18.3
 HIKARICP_VERSION | 5.1.0
+
+JMX Exporter Docker Image
+## .env file variables sample
+Name     | Value
+---------|------------
+EXPORTER_VERSION | 1.0.1
+HOSTNAME | localhost
+PORT | 9200
+MONITOR_ROLE_PASS | superpa$$wd
+DEBUG=true

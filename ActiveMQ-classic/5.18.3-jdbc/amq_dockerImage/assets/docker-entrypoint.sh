@@ -26,7 +26,6 @@ sed -i "s/USE_JMX/${USE_JMX}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq
 sed -i "s/127.0.0.1/0.0.0.0/g" $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/jetty.xml
 sed -i "s/MONITOR_ROLE_PASS/${MONITOR_ROLE_PASS}/" $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/jmx.password
 sed -i "s/CONTROL_ROLE_PASS/${CONTROL_ROLE_PASS}/" $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/jmx.password
-sed -i "s/MONITOR_ROLE_PASS/${MONITOR_ROLE_PASS}/" $CONTAINER_METRICS/config.yaml
 if [ "$OPENWIRE_ENABLED" = true ] ; then
 sed -i "/<transportConnectors\>/a\\ \t\t<transportConnector name=\"openwire\" uri=\"tcp:\/\/0.0.0.0:$OPENWIRE_PORT?maximumConnections=1000\&amp;wireFormat.maxFrameSize=104857600\"\/\>" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 fi
@@ -49,8 +48,4 @@ sed -i "s/activemq.password=manager/activemq.password=${ACTIVEMQ_ADMIN_PASS}/" /
 
 sed -i "s/admin=admin/admin=${ACTIVEMQ_ADMIN_PASS}/" /opt/apache-activemq-${AMQ_VERSION}/conf/security/users/users.properties
 
-# @ToDo make prom exporter as optional
-if [ "$METRICS_ENABLED" = true ] ; then
-java -jar ${CONTAINER_METRICS}/jmx_prometheus_httpserver-${PROM_EXPORTER_VERSION}.jar 12345 ${CONTAINER_METRICS}/config.yaml &
-fi
 bin/activemq console 'xbean:../conf/activemq.xml?validate=false'
