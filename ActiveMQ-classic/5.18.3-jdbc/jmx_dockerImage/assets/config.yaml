@@ -1,4 +1,4 @@
-hostPort: localhost:1099
+hostPort: HOSTNAME:PORT
 username: monitorRole
 password: MONITOR_ROLE_PASS
 

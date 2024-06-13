@@ -1,0 +1,14 @@
+services:
+  jmx:
+    container_name: jmx
+    ports:
+      - "9200:9200"
+    build:
+      args:
+        - EXPORTER_VERSION=${EXPORTER_VERSION} 
+    environment:
+      - HOSTNAME=${HOSTNAME}
+      - MONITOR_ROLE_PASS=${MONITOR_ROLE_PASS}
+      - PORT=${PORT}
+    env_file:
+      - .env

@@ -41,11 +41,18 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: 5.18.3-${{ env.BUILD_VERSION }}
 
+      - name: Extract Docker metadata
+        id: meta-jmx
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-jmx
+          tags: 1.0.1-${{ env.BUILD_VERSION }}
+
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@v3
         with:
-          context: ./ActiveMQ-classic/5.18.3-jdbc/dockerImage
+          context: ./ActiveMQ-classic/5.18.3-jdbc/amq_dockerImage
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -54,3 +61,14 @@ jobs:
             POSTGRESQL_JDBC_DRIVER=42.7.3
             AMQ_VERSION=5.18.3
             HIKARICP_VERSION=5.1.0
+
+      - name: Build and push Docker image
+        id: build-and-push-jmx
+        uses: docker/build-push-action@v3
+        with:
+          context: ./ActiveMQ-classic/5.18.3-jdbc/jmx_dockerImage
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-jmx.outputs.tags }}
+          labels: ${{ steps.meta-jmx.outputs.labels }}
+          build-args: |
+            EXPORTER_VERSION=1.0.1
