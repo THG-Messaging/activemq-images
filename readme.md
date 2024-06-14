@@ -39,6 +39,7 @@ Name     | Value
 ---------|------------
 EXPORTER_VERSION | 1.0.1
 HOSTNAME | localhost
-PORT | 9200
+PORT | 1099
+SERVICE_PORT | 9200
 MONITOR_ROLE_PASS | superpa$$wd
 DEBUG=true

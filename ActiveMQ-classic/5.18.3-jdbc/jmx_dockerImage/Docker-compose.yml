@@ -10,5 +10,6 @@ services:
       - HOSTNAME=${HOSTNAME}
       - MONITOR_ROLE_PASS=${MONITOR_ROLE_PASS}
       - PORT=${PORT}
+      - SERVICE_PORT=${SERVICE_PORT}
     env_file:
       - .env
