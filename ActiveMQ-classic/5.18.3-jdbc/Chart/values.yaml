@@ -66,6 +66,7 @@ jmx_exporter:
   port: 1099
   monitor_role_pass: pa$$wd
   service_port: 9200
+  exporter_version: 1.0.1
 
 secrets:
   usersSecretName: "amq-external-users"
