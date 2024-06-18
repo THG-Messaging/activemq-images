@@ -37,3 +37,7 @@ rules:
   name: activemq_$2_usage_ratio
   type: GAUGE
   valueFactor: 0.01
+
+- pattern: org.apache.activemq<type=Broker, brokerName=(\S*)><>(.*)Slave
+  name: activemq_$2_slave
+  type: GAUGE
