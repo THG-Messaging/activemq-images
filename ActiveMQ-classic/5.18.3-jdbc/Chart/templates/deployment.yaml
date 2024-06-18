@@ -183,7 +183,7 @@ spec:
               value: "{{ .Values.debug.enabled }}"
             {{- end }}
         - name: jmx-metrics
-          image: ghcr.io/thg-messaging/activemq-images/activemq-jdbc-jmx:1.0.1-2024-06-14
+          image: ghcr.io/thg-messaging/activemq-images/activemq-jdbc-jmx:1.0.1-2024-06-18
           env:
             - name: HOSTNAME
               value: "{{ .Values.jmx_exporter.hostname }}"
@@ -191,6 +191,8 @@ spec:
               value: "{{ .Values.jmx_exporter.port }}"
             - name: SERVICE_PORT
               value: "{{ .Values.jmx_exporter.service_port }}"
+            - name: EXPORTER_VERSION
+              value: "{{ .Values.jmx_exporter.exporter_version }}"
             - name: MONITOR_ROLE_PASS
               valueFrom:
                 secretKeyRef:
