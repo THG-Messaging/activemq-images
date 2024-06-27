@@ -1,0 +1,6 @@
+dependencies:
+- name: ping-exporter
+  repository: https://raw.githubusercontent.com/czerwonk/ping_exporter/main/dist/charts/
+  version: 1.1.0
+digest: sha256:38d0814c8dcbd2e5157ffe44bb620eb96ba358a0fc838588560363f28c74312e
+generated: "2024-06-27T12:29:24.187846+03:00"
