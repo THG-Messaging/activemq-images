@@ -68,20 +68,6 @@ jmx_exporter:
   service_port: 9200
   exporter_version: 1.0.1
 
-ping_exporter:
-  config:
-    targets:
-      - localhost
-
-    dns:
-      refresh: 2m15s
-      nameserver: 1.1.1.1
-    ping:
-      interval: 2s
-      timeout: 3s
-      history-size: 42
-      payload-size: 120
-
 secrets:
   usersSecretName: "amq-external-users"
   groupSecretName: "amq-external-groups"
@@ -148,3 +134,18 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+ping-exporter:
+  config:
+    targets:
+      - localhost
+
+    dns:
+      refresh: 2m15s
+      nameserver: 1.1.1.1
+
+    ping:
+      interval: 2s
+      timeout: 3s
+      history-size: 42
+      payload-size: 120

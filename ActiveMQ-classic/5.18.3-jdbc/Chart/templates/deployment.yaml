@@ -43,9 +43,6 @@ spec:
         - name: scheduler-messages
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-pvc-scheduler-messages
-        - name: ping-exporter
-          configMap:
-            name: ping-exporter
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -201,14 +198,6 @@ spec:
                 secretKeyRef:
                   name: amq-admin-secret
                   key: monitor-role-pass
-        - name: ping-exporter
-          image: czerwonk/ping_exporter:v1.1.0
-          volumeMounts:
-            - name: ping-exporter
-              mountPath: "/config"
-          command: ["/app/ping_exporter"]
-          args:
-            - "--config.path=/config/config.yml"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
