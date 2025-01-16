@@ -1,0 +1,58 @@
+version: "3.8"
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+  activemq:
+    container_name: activemq
+    depends_on:
+    - postgres
+    links:
+    - postgres
+    build:
+      args:
+        - AMQ_VERSION=$AMQ_VERSION
+        - POSTGRESQL_JDBC_DRIVER=$POSTGRESQL_JDBC_DRIVER
+        - HIKARICP_VERSION=$HIKARICP_VERSION
+    ports:
+      # WEB UI
+      - "8161:8161"
+      # Openwire
+      - "61616:61616"
+      # Prometheus exporter
+      - "12345:12345"
+      #JMX metrics
+      - "1099:1099"
+      - "11099:11099"
+    environment:
+      - BROKER_NAME=${BROKER_NAME}
+      - DB_HOST=postgres
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - CREATE_DB_TABLES=${CREATE_DB_TABLES}
+      - ACTIVEMQ_ADMIN_PASS=${ACTIVEMQ_ADMIN_PASS}
+      - USE_JMX=${USE_JMX}
+      - MONITOR_ROLE_PASS=${MONITOR_ROLE_PASS}
+      - CONTROL_ROLE_PASS=${CONTROL_ROLE_PASS}
+      - OPENWIRE_ENABLED=${OPENWIRE_ENABLED}
+      - OPENWIRE_PORT=${OPENWIRE_PORT}
+      - AMQP_ENABLED=${AMQP_ENABLED}
+      - AMQP_PORT=${AMQP_PORT}
+      - STOMP_ENABLED=${STOMP_ENABLED}
+      - STOMP_PORT=${STOMP_PORT}
+      - MQTT_ENABLED=${MQTT_ENABLED}
+      - MQTT_PORT=${MQTT_PORT}
+      - SCHEDULER_SUPPORT=${SCHEDULER_SUPPORT}
+      - SOTIMEOUT=${SOTIMEOUT}
+      - SOWRITETIMEOUT=${SOWRITETIMEOUT}
+    env_file:
+      - path: .\.env
+        required: true
+
+      - path: .\versions.env
+        required: true

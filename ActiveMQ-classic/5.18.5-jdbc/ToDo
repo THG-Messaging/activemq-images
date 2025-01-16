@@ -1,0 +1,3 @@
+Need some imroved checks for liveness and readiness probes (now it uses JMX metrics port)
+Alert when there are no master broker in cluster
+Metrics config "config.yaml" should go as configmap in k8s

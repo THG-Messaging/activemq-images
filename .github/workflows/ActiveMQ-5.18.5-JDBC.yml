@@ -1,10 +1,10 @@
-name: Build ActiveMQ 5.18.3 JDBC docker image
+name: Build ActiveMQ 5.18.5 JDBC docker image
 
 on: 
   push:
     branches: [ "main" ]
     paths:
-      - ActiveMQ-classic/5.18.3-jdbc/
+      - ActiveMQ-classic/5.18.5-jdbc/
   pull_request:
     branches: [ "main" ]
 
@@ -41,7 +41,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: 5.18.3-${{ env.BUILD_VERSION }}
+          tags: 5.18.5-${{ env.BUILD_VERSION }}
 
       - name: Extract Docker metadata
         id: meta-jmx
@@ -54,21 +54,21 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v3
         with:
-          context: ./ActiveMQ-classic/5.18.3-jdbc/amq_dockerImage
+          context: ./ActiveMQ-classic/5.18.5-jdbc/amq_dockerImage
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             PROM_EXPORTER_VERSION=0.20.0
             POSTGRESQL_JDBC_DRIVER=42.7.3
-            AMQ_VERSION=5.18.3
+            AMQ_VERSION=5.18.5
             HIKARICP_VERSION=5.1.0
 
       - name: Build and push Docker image
         id: build-and-push-jmx
         uses: docker/build-push-action@v3
         with:
-          context: ./ActiveMQ-classic/5.18.3-jdbc/jmx_dockerImage
+          context: ./ActiveMQ-classic/5.18.5-jdbc/jmx_dockerImage
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-jmx.outputs.tags }}
           labels: ${{ steps.meta-jmx.outputs.labels }}
