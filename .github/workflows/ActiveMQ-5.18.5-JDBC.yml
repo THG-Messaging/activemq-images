@@ -3,8 +3,7 @@ name: Build ActiveMQ 5.18.5 JDBC docker image
 on: 
   push:
     branches: [ "main" ]
-    paths:
-      - ActiveMQ-classic/5.18.5-jdbc/
+    paths: ['ActiveMQ-classic/5.18.5-jdbc/**']
   pull_request:
     branches: [ "main" ]
 
