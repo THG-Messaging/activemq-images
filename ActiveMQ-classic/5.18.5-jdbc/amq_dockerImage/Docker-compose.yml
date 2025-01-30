@@ -23,6 +23,8 @@ services:
       - "8161:8161"
       # Openwire
       - "61616:61616"
+      # Openwire SSL
+      - "61617:61617"
       # Prometheus exporter
       - "12345:12345"
       #JMX metrics
@@ -50,9 +52,20 @@ services:
       - SCHEDULER_SUPPORT=${SCHEDULER_SUPPORT}
       - SOTIMEOUT=${SOTIMEOUT}
       - SOWRITETIMEOUT=${SOWRITETIMEOUT}
+      - OPENWIRE_SSL_ENABLED=${OPENWIRE_SSL_ENABLED}
+      - KS_FILE=${KS_FILE}
+      - KS_PASSWORD=${KS_PASSWORD}
+      # - CA_URL=${CA_URL}
+      # - CA_FILENAME=${CA_FILENAME}
+      - CN=${CN}
+      - OPENWIRE_SSL_PORT=${OPENWIRE_SSL_PORT}
+
     env_file:
       - path: .\.env
         required: true
 
       - path: .\versions.env
         required: true
+    volumes:
+      - ./ssl:/opt/apache-activemq-5.18.5/conf/security/ssl/
+

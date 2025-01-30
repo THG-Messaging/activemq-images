@@ -30,7 +30,8 @@ RUN apk add --no-cache --upgrade bash
 RUN apk add wget \
     && mkdir -p ${ACTIVEMQ_WORKDIR} \
     && mkdir -p ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/users \
-    && mkdir -p ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/groups
+    && mkdir -p ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/groups \
+    && mkdir -p ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/ssl
 RUN wget https://archive.apache.org/dist/activemq/${AMQ_VERSION}/apache-activemq-${AMQ_VERSION}-bin.tar.gz \
     && wget https://repo1.maven.org/maven2/com/zaxxer/HikariCP/${HIKARICP_VERSION}/HikariCP-${HIKARICP_VERSION}.jar \
     && wget https://repo1.maven.org/maven2/org/postgresql/postgresql/${POSTGRESQL_JDBC_DRIVER}/postgresql-${POSTGRESQL_JDBC_DRIVER}.jar

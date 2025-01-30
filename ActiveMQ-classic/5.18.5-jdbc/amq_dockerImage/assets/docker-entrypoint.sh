@@ -29,6 +29,18 @@ sed -i "s/CONTROL_ROLE_PASS/${CONTROL_ROLE_PASS}/" $ACTIVEMQ_WORKDIR/apache-acti
 if [ "$OPENWIRE_ENABLED" = true ] ; then
 sed -i "/<transportConnectors\>/a\\ \t\t<transportConnector name=\"openwire\" uri=\"tcp:\/\/0.0.0.0:$OPENWIRE_PORT?maximumConnections=1000\&amp;wireFormat.maxFrameSize=104857600&amp;transport.soTimeout=$SOTIMEOUT&amp;transport.soWriteTimeout=$SOWRITETIMEOUT\"\/\>" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 fi
+if [ "$OPENWIRE_SSL_ENABLED" = true ] ; then
+# wget --no-check-certificate $CA_URL/$CA_FILENAME 
+# keytool -noprompt -trustcacerts -keystore /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/$KS_FILE -storepass $KS_PASSWORD -alias "THG" -importcert -file $CA_FILENAME
+keytool -genkey -alias broker -keyalg RSA -keystore /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/broker.ks -storepass $KS_PASSWORD -keypass $KS_PASSWORD -dname "CN=$CN, OU=ct, O=st" -validity 3600
+keytool -export -alias broker -keystore /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/broker.ks -file /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/broker_cert  -storepass $KS_PASSWORD
+keytool -genkey -alias client -keyalg RSA -keystore /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/client.ks -storepass $KS_PASSWORD -keypass $KS_PASSWORD -dname "CN=$CN, OU=zen, O=st" -validity 700
+keytool -import -noprompt -alias broker -keystore /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/client.ts -file /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/broker_cert -storepass $KS_PASSWORD
+keytool -export -alias client -keystore /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/client.ks -file /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/client_cert -storepass $KS_PASSWORD
+keytool -import -noprompt -alias client -keystore /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/broker.ts -file /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/client_cert -storepass $KS_PASSWORD
+sed -i "/<!--sslPlaceholder-->/a\\ \t\t<sslContext\><sslContext keyStore=\"/opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/$KS_FILE\" keyStorePassword=\"$KS_PASSWORD\"/></sslContext\>" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
+sed -i "/<transportConnectors\>/a\\ \t\t<transportConnector name=\"ssl\" uri=\"ssl:\/\/0.0.0.0:$OPENWIRE_SSL_PORT?maximumConnections=1000\&amp;wireFormat.maxFrameSize=104857600&amp;transport.soTimeout=$SOTIMEOUT&amp;transport.soWriteTimeout=$SOWRITETIMEOUT\"\/\>" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
+fi
 if [ "$AMQP_ENABLED" = true ] ; then
 sed -i "/<transportConnectors\>/a\\ \t\t<transportConnector name=\"amqp\" uri=\"tcp:\/\/0.0.0.0:$AMQP_PORT?maximumConnections=1000\&amp;wireFormat.maxFrameSize=104857600\"\/\>" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 fi

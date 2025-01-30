@@ -140,6 +140,7 @@
 
             http://activemq.apache.org/configuring-transports.html
         -->
+		<!--sslPlaceholder-->
 
 		<transportConnectors>
 			<!-- DOS protection, limit concurrent connections to 1000 and frame size to 100MB -->
