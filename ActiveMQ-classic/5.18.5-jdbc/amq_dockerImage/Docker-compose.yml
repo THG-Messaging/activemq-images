@@ -11,8 +11,6 @@ services:
     container_name: activemq
     depends_on:
     - postgres
-    links:
-    - postgres
     build:
       args:
         - AMQ_VERSION=$AMQ_VERSION
@@ -55,10 +53,9 @@ services:
       - OPENWIRE_SSL_ENABLED=${OPENWIRE_SSL_ENABLED}
       - KS_FILE=${KS_FILE}
       - KS_PASSWORD=${KS_PASSWORD}
-      # - CA_URL=${CA_URL}
-      # - CA_FILENAME=${CA_FILENAME}
       - CN=${CN}
       - OPENWIRE_SSL_PORT=${OPENWIRE_SSL_PORT}
+      - JDBC_URL=${JDBC_URL}
 
     env_file:
       - path: .\.env

@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11-openj9:alpine-jre
+FROM adoptopenjdk/openjdk11-openj9:alpine-jre AS base
 
 ARG AMQ_VERSION \
     POSTGRESQL_JDBC_DRIVER \

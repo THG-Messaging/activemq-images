@@ -8,10 +8,11 @@ fi
 echo 'ACTIVEMQ_OPTS="$ACTIVEMQ_OPTS -Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.rmi.port=1099 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.password.file=${ACTIVEMQ_BASE}/conf/jmx.password -Dcom.sun.management.jmxremote.access.file=${ACTIVEMQ_BASE}/conf/jmx.access"' >> /opt/apache-activemq-${AMQ_VERSION}/bin/env
 sed -i "s/BROKER_NAME/${BROKER_NAME}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s/DB_HOST/${DB_HOST}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
+sed -i "s|JDBC_URL|${JDBC_URL}|g" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s/node-ID/${BROKER_NAME}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s/DB_USERNAME/${DB_USERNAME}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s/DB_PASSWORD/${DB_PASSWORD}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
-sed -i "s/DB_NAME/${DB_NAME}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
+# sed -i "s/DB_NAME/${DB_NAME}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 if [ "$SCHEDULER_SUPPORT" = true ] ; then
 sed -i "s/SCHEDULER_SUPPORT/${SCHEDULER_SUPPORT}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 else
@@ -30,8 +31,6 @@ if [ "$OPENWIRE_ENABLED" = true ] ; then
 sed -i "/<transportConnectors\>/a\\ \t\t<transportConnector name=\"openwire\" uri=\"tcp:\/\/0.0.0.0:$OPENWIRE_PORT?maximumConnections=1000\&amp;wireFormat.maxFrameSize=104857600&amp;transport.soTimeout=$SOTIMEOUT&amp;transport.soWriteTimeout=$SOWRITETIMEOUT\"\/\>" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 fi
 if [ "$OPENWIRE_SSL_ENABLED" = true ] ; then
-# wget --no-check-certificate $CA_URL/$CA_FILENAME 
-# keytool -noprompt -trustcacerts -keystore /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/$KS_FILE -storepass $KS_PASSWORD -alias "THG" -importcert -file $CA_FILENAME
 keytool -genkey -alias broker -keyalg RSA -keystore /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/broker.ks -storepass $KS_PASSWORD -keypass $KS_PASSWORD -dname "CN=$CN, OU=ct, O=st" -validity 3600
 keytool -export -alias broker -keystore /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/broker.ks -file /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/broker_cert  -storepass $KS_PASSWORD
 keytool -genkey -alias client -keyalg RSA -keystore /opt/apache-activemq-${AMQ_VERSION}/conf/security/ssl/client.ks -storepass $KS_PASSWORD -keypass $KS_PASSWORD -dname "CN=$CN, OU=zen, O=st" -validity 700
