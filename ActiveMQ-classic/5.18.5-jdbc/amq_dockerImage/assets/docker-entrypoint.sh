@@ -8,7 +8,7 @@ fi
 echo 'ACTIVEMQ_OPTS="$ACTIVEMQ_OPTS -Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.rmi.port=1099 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.password.file=${ACTIVEMQ_BASE}/conf/jmx.password -Dcom.sun.management.jmxremote.access.file=${ACTIVEMQ_BASE}/conf/jmx.access"' >> /opt/apache-activemq-${AMQ_VERSION}/bin/env
 sed -i "s/BROKER_NAME/${BROKER_NAME}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s/DB_HOST/${DB_HOST}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
-sed -i "s|JDBC_URL|${JDBC_URL}|g" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
+sed -i "s|JDBC_URL|$(echo "$JDBC_URL" | sed 's|[&]|\\&|g')|g" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s/node-ID/${BROKER_NAME}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s/DB_USERNAME/${DB_USERNAME}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s/DB_PASSWORD/${DB_PASSWORD}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
