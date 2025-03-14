@@ -59,4 +59,8 @@ sed -i "s/activemq.password=manager/activemq.password=${ACTIVEMQ_ADMIN_PASS}/" /
 
 sed -i "s/admin=admin/admin=${ACTIVEMQ_ADMIN_PASS}/" /opt/apache-activemq-${AMQ_VERSION}/conf/security/users/users.properties
 
+# JMX exporter
+if [ "$METRICS_ENABLED" = true ] ; then
+sed -i -e $'$a\\\nACTIVEMQ_OPTS="-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent-1.2.0.jar=${METRICS_PORT}:/opt/jmx_exporter/config.yaml"' /opt/apache-activemq-${AMQ_VERSION}/bin/env
+fi
 bin/activemq console 'xbean:../conf/activemq.xml?validate=false' & /opt/apache-activemq-${AMQ_VERSION}/conf/monitor_bridges.sh

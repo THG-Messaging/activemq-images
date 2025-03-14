@@ -62,6 +62,7 @@ jobs:
             POSTGRESQL_JDBC_DRIVER=42.7.3
             AMQ_VERSION=5.18.5
             HIKARICP_VERSION=5.1.0
+            JMX_EXPORTER_VERSION=1.2.0
 
       - name: Build and push Docker image
         id: build-and-push-jmx

@@ -16,6 +16,7 @@ services:
         - AMQ_VERSION=$AMQ_VERSION
         - POSTGRESQL_JDBC_DRIVER=$POSTGRESQL_JDBC_DRIVER
         - HIKARICP_VERSION=$HIKARICP_VERSION
+        - JMX_EXPORTER_VERSION=$JMX_EXPORTER_VERSION
     ports:
       # WEB UI
       - "8161:8161"
@@ -56,6 +57,8 @@ services:
       - CN=${CN}
       - OPENWIRE_SSL_PORT=${OPENWIRE_SSL_PORT}
       - JDBC_URL=${JDBC_URL}
+      - METRICS_PORT=${METRICS_PORT}
+      - METRICS_ENABLED=${METRICS_ENABLED}
 
     env_file:
       - path: .\.env
@@ -65,4 +68,5 @@ services:
         required: true
     volumes:
       - ./ssl:/opt/apache-activemq-5.18.5/conf/security/ssl/
+      - ./assets/ssl:/ext/psql/banshee-db/secrets/
 

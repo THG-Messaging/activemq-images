@@ -1,0 +1,7 @@
+autoExcludeObjectNameAttributes: true
+excludeObjectNames: ["org.apache.logging.log4j2:*"]
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+rules:
+  - pattern: ".*"

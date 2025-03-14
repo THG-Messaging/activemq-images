@@ -2,7 +2,8 @@ FROM adoptopenjdk/openjdk11-openj9:alpine-jre AS base
 
 ARG AMQ_VERSION \
     POSTGRESQL_JDBC_DRIVER \
-    HIKARICP_VERSION
+    HIKARICP_VERSION \
+    JMX_EXPORTER_VERSION
 
 ENV ACTIVEMQ_WORKDIR /opt 
 
@@ -28,17 +29,23 @@ ENV BROKER_NAME \
 
 RUN apk add --no-cache --upgrade bash
 RUN apk add wget \
+    && mkdir -p /opt/jmx_exporter \
     && mkdir -p ${ACTIVEMQ_WORKDIR} \
     && mkdir -p ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/users \
     && mkdir -p ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/groups \
     && mkdir -p ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/ssl
+
 RUN wget https://archive.apache.org/dist/activemq/${AMQ_VERSION}/apache-activemq-${AMQ_VERSION}-bin.tar.gz \
     && wget https://repo1.maven.org/maven2/com/zaxxer/HikariCP/${HIKARICP_VERSION}/HikariCP-${HIKARICP_VERSION}.jar \
-    && wget https://repo1.maven.org/maven2/org/postgresql/postgresql/${POSTGRESQL_JDBC_DRIVER}/postgresql-${POSTGRESQL_JDBC_DRIVER}.jar
+    && wget https://repo1.maven.org/maven2/org/postgresql/postgresql/${POSTGRESQL_JDBC_DRIVER}/postgresql-${POSTGRESQL_JDBC_DRIVER}.jar \
+    && wget https://github.com/prometheus/jmx_exporter/releases/download/${JMX_EXPORTER_VERSION}/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar
+
 RUN tar -xzf apache-activemq-${AMQ_VERSION}-bin.tar.gz -C ${ACTIVEMQ_WORKDIR} \
     && rm apache-activemq-${AMQ_VERSION}-bin.tar.gz \
     && mv HikariCP-${HIKARICP_VERSION}.jar ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/lib/optional/HikariCP-${HIKARICP_VERSION}.jar \
-    && mv postgresql-${POSTGRESQL_JDBC_DRIVER}.jar ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/lib/optional/postgresql-${POSTGRESQL_JDBC_DRIVER}.jar
+    && mv postgresql-${POSTGRESQL_JDBC_DRIVER}.jar ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/lib/optional/postgresql-${POSTGRESQL_JDBC_DRIVER}.jar \
+    && mv jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar /opt/jmx_exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar
+
 RUN mv ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/users.properties ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/users/users.properties \
     && mv ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/groups.properties ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/groups/groups.properties
 
@@ -46,7 +53,7 @@ COPY assets/activemq.xml ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf
 COPY assets/bridges.xml ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/bridges.xml
 COPY assets/conf $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf
 COPY assets/monitor_bridges.sh $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/monitor_bridges.sh
-
+COPY assets/monitoring ${ACTIVEMQ_WORKDIR}/jmx_exporter
 COPY assets/docker-entrypoint.sh /
 
 RUN chmod -R 600 ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/jmx.access ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/jmx.password
