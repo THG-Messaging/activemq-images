@@ -331,6 +331,15 @@ log "Automatic PR creation tool: $PR_CLI_TOOL"
 log "Debug mode: $DEBUG_MODE"
 
 while true; do
+    # --- Check Target Username ENV Var ---
+    if [[ -z "$TARGET_USERNAME" ]]; then
+        log_error "TARGET_USERNAME environment variable is not set or empty. Skipping run."
+        sleep "$SLEEP_INTERVAL"
+        continue
+    fi
+    log "Processing for target user: '$TARGET_USERNAME'"
+
+    # --- Check Source File ---
     if [ ! -f "$SOURCE_FILE_PATH" ]; then
         log_error "Source file '$SOURCE_FILE_PATH' not found. Skipping check."
         sleep "$SLEEP_INTERVAL"
@@ -363,37 +372,23 @@ while true; do
             continue
         fi
 
-        # --- Phase 1: Collect Desired State from Source File ---
-        declare -A desired_auths_map_for_users # Associative array: desired_auths_map_for_users[user]="type:dest1 type:dest2"
-        declare -A unique_users_in_source_file_map # Associative array to track unique users in this run
+        # --- Phase 1: Collect Desired State from Source File for TARGET_USERNAME ---
+        declare -A desired_auths_map_this_user # Associative array: desired_auths_map_this_user[type:dest]=1
 
-        log "Phase 1: Parsing source file '$SOURCE_FILE_PATH' to determine desired state..."
-        log_debug "Initial unique_users_in_source_file_map: (${!unique_users_in_source_file_map[@]})" 
-        log_debug "Initial desired_auths_map_for_users for eimantas: '${desired_auths_map_for_users[eimantas]}'" 
-        log_debug "Initial desired_auths_map_for_users for emailcouriers: '${desired_auths_map_for_users[emailcouriers]}'" 
-
+        log "Phase 1: Parsing source file '$SOURCE_FILE_PATH' to determine desired state for user '$TARGET_USERNAME'..."
         while IFS= read -r line || [[ -n "$line" ]]; do
             log_debug "Read line from source: '$line'"
             line=$(echo "$line" | sed 's/,$//') 
             IFS=',' read -r -a fields <<< "$line"
             
-            username=$(echo "${fields[0]}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-            log_debug "  Parsed username: '$username'"
-            if [[ -z "$username" || "$username" == \#* ]]; then 
-                log_debug "  Skipping line (empty or comment)."
-                continue; 
-            fi
-
-            unique_users_in_source_file_map["$username"]=1 
-            log_debug "  Updated unique_users_in_source_file_map: (${!unique_users_in_source_file_map[@]})"
-
-
+            # Source file no longer contains username
+            
             declare -a destination_names_arr
             destination_type_val="queue" 
             num_fields_val=${#fields[@]}
 
-            if [[ $num_fields_val -lt 2 ]]; then
-                log_error "Skipping malformed line (num_fields: $num_fields_val < 2) for line: '$line'"
+            if [[ $num_fields_val -lt 1 ]]; then # Need at least one destination field
+                log_error "Skipping malformed line (num_fields: $num_fields_val < 1) for line: '$line'"
                 continue
             fi
 
@@ -408,143 +403,108 @@ while true; do
                 destinations_end_index_val=$((num_fields_val - 2)) 
             fi
             
-            if [[ $destinations_end_index_val -lt 1 ]]; then 
-                 log_error "Skipping malformed line (dest_idx: $destinations_end_index_val < 1) for user '$username': '$line'"
+            if [[ $destinations_end_index_val -lt 0 ]]; then # Check if index is valid
+                 log_error "Skipping malformed line (dest_idx: $destinations_end_index_val < 0): '$line'"
                  continue
             fi
 
-            for (( i=1; i<=destinations_end_index_val; i++ )); do
+            for (( i=0; i<=destinations_end_index_val; i++ )); do # Index starts from 0 now
                 dest_name_trimmed=$(echo "${fields[$i]}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
                 if [[ -n "$dest_name_trimmed" ]]; then
                     entry_to_store="${destination_type_val}:${dest_name_trimmed}"
-                    log_debug "    Dest name: '$dest_name_trimmed', Type: '$destination_type_val', Entry to store: '$entry_to_store' for user '$username'"
-                    # Append if not already present for that user 
-                    current_user_desired_auths=" ${desired_auths_map_for_users[$username]} " # Add spaces for robust grep
-                    if ! echo "$current_user_desired_auths" | grep -q " $entry_to_store "; then
-                        desired_auths_map_for_users["$username"]+="$entry_to_store " 
-                        log_debug "      Added to desired_auths_map_for_users[$username]: '${desired_auths_map_for_users[$username]}'"
+                    log_debug "    Dest name: '$dest_name_trimmed', Type: '$destination_type_val', Entry to store: '$entry_to_store'"
+                    # Add to map if not already present
+                    if [[ -z "${desired_auths_map_this_user[$entry_to_store]}" ]]; then
+                        desired_auths_map_this_user["$entry_to_store"]=1
+                        log_debug "      Added to desired_auths_map_this_user: ['$entry_to_store']=1. Current map keys: (${!desired_auths_map_this_user[@]})"
                     else
-                        log_debug "      Entry '$entry_to_store' already in desired_auths_map_for_users[$username]"
+                        log_debug "      Entry '$entry_to_store' already in desired_auths_map_this_user"
                     fi
                 fi
             done
         done < "../$SOURCE_FILE_PATH"
-        log "Phase 1: Desired state collection complete."
-        log_debug "Final unique_users_in_source_file_map: (${!unique_users_in_source_file_map[@]})"
-        for user_in_map in "${!desired_auths_map_for_users[@]}"; do
-            log_debug "Final desired_auths_map_for_users[$user_in_map]: '${desired_auths_map_for_users[$user_in_map]}'"
-        done
+        log "Phase 1: Desired state collection complete for user '$TARGET_USERNAME'."
+        log_debug "  Built desired_auths_map_this_user for '$TARGET_USERNAME' (keys count ${#desired_auths_map_this_user[@]}):"
+        for key_debug in "${!desired_auths_map_this_user[@]}"; do log_debug "    - '$key_debug'"; done
 
-        # --- Phase 2: Synchronize activemq.xml for each user found in source file ---
-        log "Phase 2: Synchronizing activemq.xml..."
+        # --- Phase 2: Synchronize activemq.xml for TARGET_USERNAME ---
+        log "Phase 2: Synchronizing activemq.xml for user '$TARGET_USERNAME'..."
         changes_made_in_batch=false
-        all_processed_users_list=() 
 
-        for user_to_process in "${!unique_users_in_source_file_map[@]}"; do
-            log "--- Synchronizing authorizations for user: '$user_to_process' ---"
-            all_processed_users_list+=("$user_to_process")
+        # Get existing authorizations into an indexed array for the target user
+        mapfile -t current_xml_auths_arr < <(get_existing_user_authorizations "$XML_FILE_FULL_PATH" "$TARGET_USERNAME")
+        log_debug "  Existing XML auths for '$TARGET_USERNAME' (count ${#current_xml_auths_arr[@]}):"
+        for existing_entry_debug in "${current_xml_auths_arr[@]}"; do log_debug "    - '$existing_entry_debug'"; done
 
-            # Get existing authorizations into an indexed array for this user
-            mapfile -t current_xml_auths_arr < <(get_existing_user_authorizations "$XML_FILE_FULL_PATH" "$user_to_process")
-            log_debug "  Existing XML auths for '$user_to_process' (count ${#current_xml_auths_arr[@]}):"
-            for existing_entry_debug in "${current_xml_auths_arr[@]}"; do log_debug "    - '$existing_entry_debug'"; done
-            
-            # Get desired authorizations into a map for this user
-            unset desired_auths_map_this_user # Explicitly unset/clear the map for this user
-            declare -A desired_auths_map_this_user
-            desired_auths_for_user_str="${desired_auths_map_for_users[$user_to_process]}"
-            log_debug "  Desired auth string for '$user_to_process' from map: '$desired_auths_for_user_str'"
-            
-            read -r -a desired_auths_for_user_arr <<< "$desired_auths_for_user_str" 
-            log_debug "  Desired auth array for '$user_to_process' (count ${#desired_auths_for_user_arr[@]}):"
-            for item_idx in "${!desired_auths_for_user_arr[@]}"; do
-                log_debug "    desired_arr[$item_idx] = '${desired_auths_for_user_arr[$item_idx]}'"
-                if [[ -n "${desired_auths_for_user_arr[$item_idx]}" ]]; then 
-                    desired_auths_map_this_user["${desired_auths_for_user_arr[$item_idx]}"]=1
-                fi
-            done
-            log_debug "  Built desired_auths_map_this_user for '$user_to_process' (keys count ${#desired_auths_map_this_user[@]}):"
-            for key_debug in "${!desired_auths_map_this_user[@]}"; do log_debug "    - '$key_debug'"; done
-
-
-            # Removals: Iterate existing XML entries and remove if not in desired map
-            log_debug "Checking for removals for user '$user_to_process'..."
-            for existing_auth_entry in "${current_xml_auths_arr[@]}"; do
-                 log_debug "  Checking existing XML entry: '$existing_auth_entry'"
-                if [[ -z "${desired_auths_map_this_user[$existing_auth_entry]}" ]]; then # Check if key exists in desired map
-                    log_debug "    '$existing_auth_entry' NOT in desired map. Preparing to remove."
-                    existing_type=$(echo "$existing_auth_entry" | cut -d: -f1)
-                    existing_name=$(echo "$existing_auth_entry" | cut -d: -f2-) 
-                    if [[ -n "$existing_name" ]]; then 
-                        if remove_authorization_entry "$XML_FILE_FULL_PATH" "$user_to_process" "$existing_name" "$existing_type"; then
-                            changes_made_in_batch=true
-                            # log "  Removed $existing_type '$existing_name' for user '$user_to_process' (not in source file)." # Already logged in remove_authorization_entry
-                        else
-                             log_error "  Failed to remove $existing_type '$existing_name' for user '$user_to_process'."
-                        fi
+        # Removals: Iterate existing XML entries and remove if not in desired map
+        log_debug "Checking for removals for user '$TARGET_USERNAME'..."
+        for existing_auth_entry in "${current_xml_auths_arr[@]}"; do
+             log_debug "  Checking existing XML entry: '$existing_auth_entry'"
+            if [[ -z "${desired_auths_map_this_user[$existing_auth_entry]}" ]]; then # Check if key exists in desired map
+                log_debug "    '$existing_auth_entry' NOT in desired map. Preparing to remove."
+                existing_type=$(echo "$existing_auth_entry" | cut -d: -f1)
+                existing_name=$(echo "$existing_auth_entry" | cut -d: -f2-) 
+                if [[ -n "$existing_name" ]]; then 
+                    if remove_authorization_entry "$XML_FILE_FULL_PATH" "$TARGET_USERNAME" "$existing_name" "$existing_type"; then
+                        changes_made_in_batch=true
                     else
-                         log_error "  Skipping removal of entry with empty destination name: $existing_auth_entry"
+                         log_error "  Failed to remove $existing_type '$existing_name' for user '$TARGET_USERNAME'."
                     fi
                 else
-                     log_debug "    '$existing_auth_entry' IS in desired map. Keeping."
+                     log_error "  Skipping removal of entry with empty destination name: $existing_auth_entry"
                 fi
-            done
-
-            # Additions: Iterate desired entries and add if not in current XML array
-            log_debug "Checking for additions for user '$user_to_process'..."
-            for desired_auth_entry in "${!desired_auths_map_this_user[@]}"; do
-                 log_debug "  Checking desired entry: '$desired_auth_entry'"
-                 is_existing_in_xml=false
-                 for current_entry_from_xml_arr in "${current_xml_auths_arr[@]}"; do # Iterate the original array from XML
-                     if [[ "$desired_auth_entry" == "$current_entry_from_xml_arr" ]]; then
-                         is_existing_in_xml=true
-                         break
-                     fi
-                 done
-
-                 if ! $is_existing_in_xml; then
-                    log_debug "    '$desired_auth_entry' NOT in current XML. Preparing to add."
-                    desired_type=$(echo "$desired_auth_entry" | cut -d: -f1)
-                    desired_name=$(echo "$desired_auth_entry" | cut -d: -f2-) 
-                    if [[ -z "$desired_name" ]]; then 
-                       log_error "  Skipping add for entry with empty destination name: $desired_auth_entry"
-                       continue
-                    fi
-                    if ! check_duplicate "$XML_FILE_FULL_PATH" "$desired_name" "$user_to_process" "$desired_type"; then
-                        if add_authorization_entry "$XML_FILE_FULL_PATH" "$desired_name" "$user_to_process" "$desired_type"; then
-                           changes_made_in_batch=true
-                        else
-                            log_error "  Failed to add $desired_type '$desired_name' for user '$user_to_process'."
-                        fi
-                    else
-                        log "  Skipping add for '$desired_auth_entry' for user '$user_to_process' - check_duplicate indicates it already exists."
-                    fi
-                 else
-                     log_debug "    '$desired_auth_entry' IS in current XML. No action."
-                 fi
-            done
+            else
+                 log_debug "    '$existing_auth_entry' IS in desired map. Keeping."
+            fi
         done
-        log "Phase 2: Synchronization complete."
+
+        # Additions: Iterate desired entries and add if not in current XML array
+        log_debug "Checking for additions for user '$TARGET_USERNAME'..."
+        for desired_auth_entry in "${!desired_auths_map_this_user[@]}"; do
+             log_debug "  Checking desired entry: '$desired_auth_entry'"
+             is_existing_in_xml=false
+             for current_entry_from_xml_arr in "${current_xml_auths_arr[@]}"; do # Iterate the original array from XML
+                 if [[ "$desired_auth_entry" == "$current_entry_from_xml_arr" ]]; then
+                     is_existing_in_xml=true
+                     break
+                 fi
+             done
+
+             if ! $is_existing_in_xml; then
+                log_debug "    '$desired_auth_entry' NOT in current XML. Preparing to add."
+                desired_type=$(echo "$desired_auth_entry" | cut -d: -f1)
+                desired_name=$(echo "$desired_auth_entry" | cut -d: -f2-) 
+                if [[ -z "$desired_name" ]]; then 
+                   log_error "  Skipping add for entry with empty destination name: $desired_auth_entry"
+                   continue
+                fi
+                if ! check_duplicate "$XML_FILE_FULL_PATH" "$desired_name" "$TARGET_USERNAME" "$desired_type"; then
+                    if add_authorization_entry "$XML_FILE_FULL_PATH" "$desired_name" "$TARGET_USERNAME" "$desired_type"; then
+                       changes_made_in_batch=true
+                    else
+                        log_error "  Failed to add $desired_type '$desired_name' for user '$TARGET_USERNAME'."
+                    fi
+                else
+                    log "  Skipping add for '$desired_auth_entry' for user '$TARGET_USERNAME' - check_duplicate indicates it already exists."
+                fi
+             else
+                 log_debug "    '$desired_auth_entry' IS in current XML. No action."
+             fi
+        done
+        log "Phase 2: Synchronization complete for user '$TARGET_USERNAME'."
         
         if $changes_made_in_batch; then
             if ! fix_gt_in_xml_attributes_final "$XML_FILE_FULL_PATH"; then
-                log_error "CRITICAL: Failed to apply final &gt; fix for $XML_FILE_FULL_PATH after all changes. File may be in an inconsistent state for ActiveMQ."
+                log_error "CRITICAL: Failed to apply final &gt; fix for $XML_FILE_FULL_PATH after all changes."
             fi
         fi
         
-        processed_users_str=$(printf ", %s" "${all_processed_users_list[@]}")
-        processed_users_str=${processed_users_str:2} 
-
         if ! $changes_made_in_batch; then
-            log "No changes were made to $ACTIVEMQ_XML_PATH for users: ${processed_users_str:-'(none specified)'}. No commit needed."
+            log "No changes were made to $ACTIVEMQ_XML_PATH for user '$TARGET_USERNAME'."
         else
-            log "Changes detected. Proceeding with Git operations for users: ${processed_users_str:-'(none specified)'}."
-            first_user_for_branch_name=""
-            if [[ ${#all_processed_users_list[@]} -gt 0 ]]; then
-                first_user_for_branch_name="${all_processed_users_list[0]}"
-            fi
-
-            BRANCH_NAME=$(generate_branch_name "$first_user_for_branch_name") 
+            log "Changes detected. Proceeding with Git operations for user '$TARGET_USERNAME'."
+            
+            BRANCH_NAME=$(generate_branch_name "$TARGET_USERNAME") 
             log "Creating and checking out new branch: $BRANCH_NAME (from $BASE_BRANCH)"
             git checkout -b "$BRANCH_NAME" "$BASE_BRANCH" || { log_error "Could not create branch $BRANCH_NAME from $BASE_BRANCH."; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
             
@@ -556,17 +516,10 @@ while true; do
                 git checkout "$BASE_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue;
             fi
 
-            COMMIT_SUBJECT="feat: Sync ActiveMQ auth for ${first_user_for_branch_name:-processed users}"
-            if [[ ${#all_processed_users_list[@]} -gt 1 && "$first_user_for_branch_name" != "processed users" ]]; then
-                 COMMIT_SUBJECT="feat: Batch sync ActiveMQ authorizations"
-            elif [[ -z "$first_user_for_branch_name" ]]; then 
-                 COMMIT_SUBJECT="feat: Sync ActiveMQ authorizations"
-            fi
+            COMMIT_SUBJECT="feat: Sync ActiveMQ auth for $TARGET_USERNAME"
+            COMMIT_BODY="Automated synchronization of ActiveMQ authorizations for user '$TARGET_USERNAME'.
 
-            COMMIT_BODY="Automated synchronization of ActiveMQ authorizations.
-
-Users processed in this batch: ${processed_users_str:-'(none specified)'}.
-Entries were added or removed to match the source file configuration for these users."
+Entries were added or removed to match the source file configuration."
             log "Committing changes..."
             git commit -m "$COMMIT_SUBJECT" -m "$COMMIT_BODY" || { log_error "Could not commit changes."; git checkout "$BASE_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
 
