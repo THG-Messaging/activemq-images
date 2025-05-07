@@ -1,0 +1,5 @@
+eimantas,queue1,topic
+emailcouriers,smth,queue
+paymentss,queue,queue
+paymentss,topic,topic
+paymentss,topic.topic.topic,topic

@@ -1,0 +1,39 @@
+#!/bin/bash
+set -e
+
+# Load config
+source /config/config.env
+
+# Setup
+WORKDIR=/repo
+BRANCH_NAME="auto-update-$(date +%Y%m%d%H%M%S)"
+
+# Clone and setup Git
+gh auth login --with-token < /config/github_token.sec
+gh auth setup-git
+git clone "$GIT_REPO_URL" "$WORKDIR"
+cd "$WORKDIR"
+
+# Ensure clean state
+git checkout "$GIT_BRANCH"
+git pull origin "$GIT_BRANCH"
+
+sleep infinity
+
+if git diff --quiet HEAD --no-index -- "$MONITORED_PATH" "$BROKER_NAME"; then
+    echo "No changes in $MONITORED_PATH"
+    exit 0
+fi
+
+# Commit changes
+git checkout -b "$BRANCH_NAME"
+git add "$MONITORED_PATH"
+git commit -m "Auto-update: changes detected in $MONITORED_PATH"
+git push -u origin "$BRANCH_NAME"
+
+# Create PR
+gh auth status || gh auth login --with-token < /config/github_token.sec
+  --title "Auto PR: Update to $MONITORED_PATH" \
+  --body "Auto-created PR due to file change." \
+  --base "$GIT_BRANCH" \
+  --head "$BRANCH_NAME"

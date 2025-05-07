@@ -6,3 +6,5 @@ security/
 **/.env
 **/versions.env
 ssl/
+config.env
+github_token.sec
