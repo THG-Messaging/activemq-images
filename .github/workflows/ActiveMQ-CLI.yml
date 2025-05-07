@@ -1,0 +1,68 @@
+name: Build ActiveMQ CLI docker image
+
+on: 
+  push:
+    branches: [ "main" ]
+    paths: ['Activemq-cli/**']
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/ActiveMQ-CLI
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set Release Version
+        run: |
+          echo "BUILD_VERSION=$(date --rfc-3339=date)" >> ${GITHUB_ENV}
+          echo "${{ secrets.GH_TOKEN_PRS }}" > github_token.sec
+          echo "${{ secrets.GIT_REPO_URL }}" > config.env
+          echo "${{ secrets.GIT_BRANCH }}" > config.env
+          echo "${{ secrets.SOURCE_FILE_PATH }}" > config.env
+          echo "${{ secrets.GIT_USER_NAME }}" > config.env
+          echo "${{ secrets.GIT_USER_EMAIL }}" > config.env
+          echo "${{ secrets.BROKER_NAME }}" > config.env
+          echo "${{ secrets.DEBUG_MODE }}" > config.env
+
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: ${{ env.BUILD_VERSION }}
+
+      - name: Extract Docker metadata
+        id: meta-jmx
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-jmx
+          tags: 1.0.1-${{ env.BUILD_VERSION }}
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./Activemq-cli
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
