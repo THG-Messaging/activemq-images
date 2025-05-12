@@ -3,7 +3,7 @@ source /config/config.env
 ACTIVEMQ_XML_PATH="tepstelis"
 BASE_BRANCH="main"
 REPO_DIR="activemq-config-repo"
-SOURCE_FILE_PATH="/brokerconfig.txt"
+SOURCE_FILE_PATH="/bindings/bindings"
 SLEEP_INTERVAL=60
 # Pull Request CLI tool: "gh" (GitHub CLI), "glab" (GitLab CLI), or "none"
 PR_CLI_TOOL="gh" # Set to "gh" or "glab" to enable automatic PR creation
