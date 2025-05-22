@@ -4,10 +4,9 @@ from flask import Flask, jsonify
 # Flask app setup
 app = Flask(__name__)
 
-# Configuration variables (update as needed)
+
 JOLOKIA_URL = "http://localhost:8161/api/jolokia/read/org.apache.activemq:brokerName=BROKER_NAME,type=Broker/Slave"
 USERNAME = "admin"
-#need to harden JMX access
 PASSWORD = "ACTIVEMQ_ADMIN_PASS"
 SLAVE = "false" 
 
