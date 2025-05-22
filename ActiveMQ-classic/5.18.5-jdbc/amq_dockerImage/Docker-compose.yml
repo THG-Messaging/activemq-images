@@ -34,6 +34,7 @@ services:
       #JMX metrics
       - "1099:1099"
       - "11099:11099"
+      - "8081:8081"
     environment:
       - BROKER_NAME=${BROKER_NAME}
       - DB_HOST=postgres

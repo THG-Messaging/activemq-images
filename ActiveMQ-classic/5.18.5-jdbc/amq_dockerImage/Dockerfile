@@ -27,9 +27,15 @@ ENV BROKER_NAME \
     MQTT_PORT \
     SCHEDULER_SUPPORT
 
-RUN apk add --no-cache --upgrade bash
+# Install python for lbchecker script
+RUN apk add --no-cache --upgrade bash python3 && ln -sf python3 /usr/bin/python
+RUN apk add --update py3-pip
+RUN python3 -m venv ~/pyvenv --system-site-packages
+RUN ~/pyvenv/bin/pip3 install requests flask
+
 RUN apk add wget \
     && mkdir -p /opt/jmx_exporter \
+    && mkdir -p /opt/lbchecker \
     && mkdir -p ${ACTIVEMQ_WORKDIR} \
     && mkdir -p ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/users \
     && mkdir -p ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/groups \
@@ -51,9 +57,11 @@ RUN mv ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/users.properties 
 
 COPY assets/activemq.xml ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 COPY assets/bridges.xml ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/bridges.xml
+COPY assets/conf/jolokia-access.xml ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/jolokia-access.xml
 COPY assets/conf $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf
 COPY assets/monitor_bridges.sh $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/monitor_bridges.sh
 COPY assets/monitoring ${ACTIVEMQ_WORKDIR}/jmx_exporter
+COPY assets/lbchecker.py /opt/lbchecker/lbchecker.py
 COPY assets/docker-entrypoint.sh /
 
 RUN chmod -R 600 ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/jmx.access ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/jmx.password

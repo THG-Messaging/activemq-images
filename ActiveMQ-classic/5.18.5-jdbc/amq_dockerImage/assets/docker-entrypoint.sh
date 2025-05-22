@@ -7,6 +7,7 @@ fi
 # @ToDo make JMX optional and make it more secure
 echo 'ACTIVEMQ_OPTS="$ACTIVEMQ_OPTS -Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.rmi.port=1099 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.password.file=${ACTIVEMQ_BASE}/conf/jmx.password -Dcom.sun.management.jmxremote.access.file=${ACTIVEMQ_BASE}/conf/jmx.access"' >> /opt/apache-activemq-${AMQ_VERSION}/bin/env
 sed -i "s/BROKER_NAME/${BROKER_NAME}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
+sed -i "s/BROKER_NAME/${BROKER_NAME}/" /opt/lbchecker/lbchecker.py
 sed -i "s/DB_HOST/${DB_HOST}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s|JDBC_URL|$(echo "$JDBC_URL" | sed 's|&|\\&amp;|g')|g" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s/node-ID/${BROKER_NAME}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
@@ -27,6 +28,8 @@ sed -i "s/USE_JMX/${USE_JMX}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq
 sed -i "s/127.0.0.1/0.0.0.0/g" $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/jetty.xml
 sed -i "s/MONITOR_ROLE_PASS/${MONITOR_ROLE_PASS}/" $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/jmx.password
 sed -i "s/CONTROL_ROLE_PASS/${CONTROL_ROLE_PASS}/" $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/jmx.password
+sed -i "s/ACTIVEMQ_ADMIN_PASS/${ACTIVEMQ_ADMIN_PASS}/" /opt/lbchecker/lbchecker.py
+
 if [ "$OPENWIRE_ENABLED" = true ] ; then
 sed -i "/<transportConnectors\>/a\\ \t\t<transportConnector name=\"openwire\" uri=\"tcp:\/\/0.0.0.0:$OPENWIRE_PORT?maximumConnections=1000\&amp;wireFormat.maxFrameSize=104857600&amp;transport.soTimeout=$SOTIMEOUT&amp;transport.soWriteTimeout=$SOWRITETIMEOUT\"\/\>" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 fi
@@ -63,4 +66,4 @@ sed -i "s/admin=admin/admin=${ACTIVEMQ_ADMIN_PASS}/" /opt/apache-activemq-${AMQ_
 if [ "$METRICS_ENABLED" = true ] ; then
 sed -i -e $'$a\\\nACTIVEMQ_OPTS="-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent-1.2.0.jar=${METRICS_PORT}:/opt/jmx_exporter/config.yaml"' /opt/apache-activemq-${AMQ_VERSION}/bin/env
 fi
-bin/activemq console 'xbean:../conf/activemq.xml?validate=false' & /opt/apache-activemq-${AMQ_VERSION}/conf/monitor_bridges.sh
+bin/activemq console 'xbean:../conf/activemq.xml?validate=false' & /opt/apache-activemq-${AMQ_VERSION}/conf/monitor_bridges.sh & ~/pyvenv/bin/python3 /opt/lbchecker/lbchecker.py
