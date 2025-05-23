@@ -7,3 +7,5 @@ services:
       - config.env
     volumes:
     - ./testFiles/:/bindings/
+    - ./github_token.sec:/config/github_token.sec
+    - ./config.env:/config/config.env

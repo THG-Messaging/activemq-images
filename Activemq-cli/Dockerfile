@@ -23,8 +23,6 @@ RUN tar -xzf gh.tar.gz && \
 
 # Copy scripts and config
 COPY entrypoint.sh /entrypoint.sh
-COPY config.env /config/config.env
-COPY github_token.sec /config/github_token.sec
 
 # Set permissions
 RUN chmod +x /entrypoint.sh

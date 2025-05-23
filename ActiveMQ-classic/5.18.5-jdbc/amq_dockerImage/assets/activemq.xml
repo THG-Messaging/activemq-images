@@ -154,6 +154,7 @@
 		<plugins>
     		<jaasAuthenticationPlugin configuration="activemq-domain" />
 			<authorizationPlugin>
+<!--BeginAuth-->
 				<map>
 					<authorizationMap>
 
@@ -165,6 +166,7 @@
 
 					</authorizationMap>
 				</map>
+<!--EndAuth-->
 			</authorizationPlugin>
 			<runtimeConfigurationPlugin checkPeriod="10000" />
     	</plugins>

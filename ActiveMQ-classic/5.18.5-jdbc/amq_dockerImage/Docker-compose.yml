@@ -65,6 +65,9 @@ services:
       - JDBC_URL=${JDBC_URL}
       - METRICS_PORT=${METRICS_PORT}
       - METRICS_ENABLED=${METRICS_ENABLED}
+      - GIT_REPO_URL=${GIT_REPO_URL}
+      - GIT_BRANCH=${GIT_BRANCH}
+      - CHECK_INTERVAL=${CHECK_INTERVAL}
 
     env_file:
       - path: .\.env
@@ -75,5 +78,7 @@ services:
     volumes:
       - ./ssl:/opt/apache-activemq-5.18.5/conf/security/ssl/
       - ./assets/ssl:/ext/psql/banshee-db/secrets/
+      - ./assets/config.env:/config/config.env
+      - ./github_token.sec:/config/github_token.sec
     networks:
       - networkas
