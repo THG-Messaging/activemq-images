@@ -68,6 +68,7 @@ services:
       - GIT_REPO_URL=${GIT_REPO_URL}
       - GIT_BRANCH=${GIT_BRANCH}
       - CHECK_INTERVAL=${CHECK_INTERVAL}
+      - BROKER_NAME_FILE=${BROKER_NAME_FILE}
 
     env_file:
       - path: .\.env

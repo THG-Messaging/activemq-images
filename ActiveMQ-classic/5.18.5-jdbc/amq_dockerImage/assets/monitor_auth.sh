@@ -22,7 +22,7 @@ log_message() {
 
 # Function to fetch the latest file from Git
 fetch_from_git() {
-    log_message "Fetching latest '$BROKER_NAME' from Git repository '$GIT_REPO_URL' (branch '$GIT_BRANCH')..."
+    log_message "Fetching latest '$BROKER_NAME_FILE' from Git repository '$GIT_REPO_URL' (branch '$GIT_BRANCH')..."
 
     # Clean up any previous git checkout directory and create a fresh one
     rm -rf "$TEMP_GIT_CHECKOUT_DIR"
@@ -46,14 +46,14 @@ fetch_from_git() {
 
  # Using a shallow clone for efficiency
     if git clone --quiet --depth 1 --branch "$GIT_BRANCH" --no-tags --single-branch "$GIT_REPO_URL" "$TEMP_GIT_CHECKOUT_DIR"; then
-        local repo_local_file_path="$TEMP_GIT_CHECKOUT_DIR/$BROKER_NAME"
+        local repo_local_file_path="$TEMP_GIT_CHECKOUT_DIR/$BROKER_NAME_FILE"
         if [ -f "$repo_local_file_path" ]; then
             cp "$repo_local_file_path" "$SOURCE_FILE_FROM_REPO"
-            log_message "Successfully fetched '$BROKER_NAME' and copied to $SOURCE_FILE_FROM_REPO"
+            log_message "Successfully fetched '$BROKER_NAME_FILE' and copied to $SOURCE_FILE_FROM_REPO"
             rm -rf "$TEMP_GIT_CHECKOUT_DIR" # Clean up cloned repo
             return 0 # Success
         else
-            log_message "Error: File '$BROKER_NAME' not found in the cloned repository at '$repo_local_file_path'."
+            log_message "Error: File '$BROKER_NAME_FILE' not found in the cloned repository at '$repo_local_file_path'."
             rm -rf "$TEMP_GIT_CHECKOUT_DIR" # Clean up
             return 1 # Failure
         fi
@@ -114,7 +114,7 @@ update_destination_file() {
     # making the comparison fairly robust for content.
     # Using printf to avoid issues with echo and leading hyphens or backslashes in data.
     if [ "$(printf '%s' "$new_data_from_git")" = "$(printf '%s' "$current_data_in_dest")" ]; then
-        log_message "No changes detected between '$BROKER_NAME' from git and content in '$DEST_FILE'. No update needed."
+        log_message "No changes detected between '$BROKER_NAME_FILE' from git and content in '$DEST_FILE'. No update needed."
         return 0 # Success, no changes
     fi
 
@@ -209,11 +209,11 @@ log_message "Starting ActiveMQ config updater script..."
 : "${AMQ_VERSION:?Error: AMQ_VERSION environment variable is not set.}"
 : "${GIT_REPO_URL:?Error: GIT_REPO_URL environment variable is not set.}"
 : "${GIT_BRANCH:?Error: GIT_BRANCH environment variable is not set.}"
-: "${BROKER_NAME:?Error: BROKER_NAME (file path in git repo) environment variable is not set.}"
+: "${BROKER_NAME_FILE:?Error: BROKER_NAME_FILE (file path in git repo) environment variable is not set.}"
 : "${CHECK_INTERVAL:?Error: CHECK_INTERVAL environment variable is not set.}"
-# REPO_FILE_PATH was used in logs but BROKER_NAME is used for operations. Standardized to BROKER_NAME.
+# REPO_FILE_PATH was used in logs but BROKER_NAME_FILE is used for operations. Standardized to BROKER_NAME_FILE.
 
-log_message "Monitoring Git repo: $GIT_REPO_URL, branch: $GIT_BRANCH, file in repo: $BROKER_NAME"
+log_message "Monitoring Git repo: $GIT_REPO_URL, branch: $GIT_BRANCH, file in repo: $BROKER_NAME_FILE"
 log_message "Target ActiveMQ file: $DEST_FILE (AMQ Version: $AMQ_VERSION)"
 log_message "Placeholders: '$START_PLACEHOLDER' to '$END_PLACEHOLDER'"
 log_message "Check interval: $CHECK_INTERVAL seconds"
