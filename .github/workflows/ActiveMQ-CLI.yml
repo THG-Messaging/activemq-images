@@ -29,6 +29,7 @@ jobs:
           
       - name: Set Required vars & secrets
         run: | 
+          mkdir /config
           touch /config/github_token.sec
           echo "${{ secrets.GH_TOKEN_PRS }}" > /config/github_token.sec    
 
