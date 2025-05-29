@@ -1,10 +1,7 @@
 #!/bin/bash
 source /config/config.env
-ACTIVEMQ_XML_PATH="tepstelis"
-BASE_BRANCH="main"
 REPO_DIR="activemq-config-repo"
 SOURCE_FILE_PATH="/bindings/bindings"
-SLEEP_INTERVAL=60
 # Pull Request CLI tool: "gh" (GitHub CLI), "glab" (GitLab CLI), or "none"
 PR_CLI_TOOL="gh" # Set to "gh" or "glab" to enable automatic PR creation
 LAST_MOD_TIME=0
@@ -251,21 +248,21 @@ setup_repo() {
             log "Repository is clean. No stash needed."
         fi
 
-        log "Checking out $BASE_BRANCH..."
-        git checkout "$BASE_BRANCH" || { log_error "Could not checkout $BASE_BRANCH. Stashed changes might need manual recovery if any."; cd ..; return 1; }
+        log "Checking out $GIT_BRANCH..."
+        git checkout "$GIT_BRANCH" || { log_error "Could not checkout $GIT_BRANCH. Stashed changes might need manual recovery if any."; cd ..; return 1; }
 
-        log "Fetching changes from origin for $BASE_BRANCH..."
+        log "Fetching changes from origin for $GIT_BRANCH..."
         git fetch origin || { log_error "Could not fetch from origin"; cd ..; return 1; } 
 
-        log "Resetting local $BASE_BRANCH to match origin/$BASE_BRANCH..."
-        git reset --hard "origin/$BASE_BRANCH" || { log_error "Could not reset $BASE_BRANCH to origin/$BASE_BRANCH"; cd ..; return 1; }
+        log "Resetting local $GIT_BRANCH to match origin/$GIT_BRANCH..."
+        git reset --hard "origin/$GIT_BRANCH" || { log_error "Could not reset $GIT_BRANCH to origin/$GIT_BRANCH"; cd ..; return 1; }
         
-        log "Local $BASE_BRANCH is now up-to-date with origin/$BASE_BRANCH."
+        log "Local $GIT_BRANCH is now up-to-date with origin/$GIT_BRANCH."
         cd .. || { log_error "Could not change directory back from $REPO_DIR"; return 1; } 
     else
         log "Cloning repository $GIT_REPO_URL into '$REPO_DIR'..."
         rm -rf "$REPO_DIR" 
-        git clone --branch "$BASE_BRANCH" "$GIT_REPO_URL" "$REPO_DIR" || { log_error "Could not clone repository."; return 1; }
+        git clone --branch "$GIT_BRANCH" "$GIT_REPO_URL" "$REPO_DIR" || { log_error "Could not clone repository."; return 1; }
     fi
 
     log "Configuring Git user for repository at '$target_dir_to_config_git'..."
@@ -325,7 +322,7 @@ create_pull_request() {
 log "Starting ActiveMQ authorization sync script."
 log "Watching source file: $SOURCE_FILE_PATH"
 log "Repository: $GIT_REPO_URL"
-log "XML Path: $ACTIVEMQ_XML_PATH"
+log "XML Path: $BROKER_NAME"
 log "Check interval: $SLEEP_INTERVAL seconds"
 log "Automatic PR creation tool: $PR_CLI_TOOL"
 log "Debug mode: $DEBUG_MODE"
@@ -364,7 +361,7 @@ while true; do
 
         cd "$REPO_DIR" || { log_error "Critical: Could not change directory to $REPO_DIR after setup. Stopping."; exit 1; }
 
-        XML_FILE_FULL_PATH="$ACTIVEMQ_XML_PATH" 
+        XML_FILE_FULL_PATH="$BROKER_NAME" 
         if [ ! -f "$XML_FILE_FULL_PATH" ]; then
             log_error "ActiveMQ XML file not found at '$XML_FILE_FULL_PATH'. Skipping processing."
             cd .. 
@@ -500,20 +497,20 @@ while true; do
         fi
         
         if ! $changes_made_in_batch; then
-            log "No changes were made to $ACTIVEMQ_XML_PATH for user '$TARGET_USERNAME'."
+            log "No changes were made to $BROKER_NAME for user '$TARGET_USERNAME'."
         else
             log "Changes detected. Proceeding with Git operations for user '$TARGET_USERNAME'."
             
             BRANCH_NAME=$(generate_branch_name "$TARGET_USERNAME") 
-            log "Creating and checking out new branch: $BRANCH_NAME (from $BASE_BRANCH)"
-            git checkout -b "$BRANCH_NAME" "$BASE_BRANCH" || { log_error "Could not create branch $BRANCH_NAME from $BASE_BRANCH."; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
+            log "Creating and checking out new branch: $BRANCH_NAME (from $GIT_BRANCH)"
+            git checkout -b "$BRANCH_NAME" "$GIT_BRANCH" || { log_error "Could not create branch $BRANCH_NAME from $GIT_BRANCH."; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
             
             log "Staging changes..."
             if [ -f "$XML_FILE_FULL_PATH" ]; then
-                git add "$XML_FILE_FULL_PATH" || { log_error "Could not stage changes for $XML_FILE_FULL_PATH."; git checkout -- "$XML_FILE_FULL_PATH"; git checkout "$BASE_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
+                git add "$XML_FILE_FULL_PATH" || { log_error "Could not stage changes for $XML_FILE_FULL_PATH."; git checkout -- "$XML_FILE_FULL_PATH"; git checkout "$GIT_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
             else
                 log_error "File $XML_FILE_FULL_PATH not found after processing. Cannot stage changes."
-                git checkout "$BASE_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue;
+                git checkout "$GIT_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue;
             fi
 
             COMMIT_SUBJECT="feat: Sync ActiveMQ auth for $TARGET_USERNAME"
@@ -521,20 +518,20 @@ while true; do
 
 Entries were added or removed to match the source file configuration."
             log "Committing changes..."
-            git commit -m "$COMMIT_SUBJECT" -m "$COMMIT_BODY" || { log_error "Could not commit changes."; git checkout "$BASE_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
+            git commit -m "$COMMIT_SUBJECT" -m "$COMMIT_BODY" || { log_error "Could not commit changes."; git checkout "$GIT_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
 
             log "Pushing branch '$BRANCH_NAME' to origin..."
-            git push -u origin "$BRANCH_NAME" || { log_error "Could not push branch $BRANCH_NAME to origin."; git checkout "$BASE_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
+            git push -u origin "$BRANCH_NAME" || { log_error "Could not push branch $BRANCH_NAME to origin."; git checkout "$GIT_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
 
             log "Branch '$BRANCH_NAME' pushed successfully."
             
-            if ! create_pull_request "$BRANCH_NAME" "$BASE_BRANCH" "$COMMIT_SUBJECT" "$COMMIT_BODY"; then
-                log "Manual PR creation needed for branch '$BRANCH_NAME' to '$BASE_BRANCH'."
+            if ! create_pull_request "$BRANCH_NAME" "$GIT_BRANCH" "$COMMIT_SUBJECT" "$COMMIT_BODY"; then
+                log "Manual PR creation needed for branch '$BRANCH_NAME' to '$GIT_BRANCH'."
                 log "Title: $COMMIT_SUBJECT"
                 log "Body: $COMMIT_BODY"
             fi
 
-            git checkout "$BASE_BRANCH" || log_error "Could not check out $BASE_BRANCH after push."
+            git checkout "$GIT_BRANCH" || log_error "Could not check out $GIT_BRANCH after push."
         fi
 
         LAST_MOD_TIME=$CURRENT_MOD_TIME
