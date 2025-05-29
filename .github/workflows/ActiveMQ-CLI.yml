@@ -29,7 +29,8 @@ jobs:
           
       - name: Set Required vars & secrets
         run: | 
-          echo "${{ secrets.GH_TOKEN_PRS }}" > ./config/github_token.sec    
+          touch /config/github_token.sec
+          echo "${{ secrets.GH_TOKEN_PRS }}" > /config/github_token.sec    
 
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
