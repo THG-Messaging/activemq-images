@@ -9,7 +9,7 @@ END_PLACEHOLDER="<!--EndAuth-->"
 # Temporary location for script operations
 TEMP_DIR_BASE="/tmp/activemq_config_updater_$(date +%s%N)" # Unique temp base to allow parallel runs if ever needed for other purposes
 TEMP_GIT_CHECKOUT_DIR="${TEMP_DIR_BASE}/git_checkout"
-SOURCE_FILE_FROM_REPO="${TEMP_DIR_BASE}/tepstelis"
+SOURCE_FILE_FROM_REPO="${TEMP_DIR_BASE}/$BROKER_NAME_FILE"
 
 # Git auth
 gh auth login --with-token < /config/github_token.sec
@@ -22,7 +22,7 @@ log_message() {
 
 # Function to fetch the latest file from Git
 fetch_from_git() {
-    log_message "Fetching latest '$BROKER_NAME_FILE' from Git repository '$GIT_REPO_URL' (branch '$GIT_BRANCH')..."
+    log_message "Fetching latest file '$BROKER_NAME_FILE' from Git repository '$GIT_REPO_URL' (branch '$GIT_BRANCH')..."
 
     # Clean up any previous git checkout directory and create a fresh one
     rm -rf "$TEMP_GIT_CHECKOUT_DIR"
