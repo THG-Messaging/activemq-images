@@ -19,8 +19,10 @@ RUN tar -xzf gh.tar.gz && \
     mv gh_2.49.0_linux_amd64/bin/gh /usr/local/bin/ && \
     chmod +x /usr/local/bin/gh && \
     rm -rf gh.tar.gz gh_2.49.0_linux_amd64 \
-    mkdir \bindings
+    mkdir \bindings \
+    mkdir \config
 
+COPY ./github_token.sec /config/github_token.sec   
 # Copy scripts and config
 COPY entrypoint.sh /entrypoint.sh
 
