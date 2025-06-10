@@ -66,4 +66,4 @@ sed -i "s/admin=admin/admin=${ACTIVEMQ_ADMIN_PASS}/" /opt/apache-activemq-${AMQ_
 if [ "$METRICS_ENABLED" = true ] ; then
 sed -i -e $'$a\\\nACTIVEMQ_OPTS="-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent-1.2.0.jar=${METRICS_PORT}:/opt/jmx_exporter/config.yaml"' /opt/apache-activemq-${AMQ_VERSION}/bin/env
 fi
-bin/activemq console 'xbean:../conf/activemq.xml?validate=false' & ~/pyvenv/bin/python3 /opt/lbchecker/lbchecker.py & /opt/apache-activemq-${AMQ_VERSION}/conf/monitor_auth.sh
+bin/activemq console 'xbean:../conf/activemq.xml?validate=false' & /opt/pyvenv/bin/python3 /opt/lbchecker/lbchecker.py & /opt/apache-activemq-${AMQ_VERSION}/conf/monitor_auth.sh
