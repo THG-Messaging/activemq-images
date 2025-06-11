@@ -93,12 +93,12 @@ generate_branch_name() {
 
 fixed_branch_name() {
     local username_part=$1 
-    
+
     if [[ -n "$username_part" ]]; then
         local sanitized_user=$(echo "$username_part" | sed 's/[^a-zA-Z0-9]/-/g' | cut -c1-30) 
         echo "auth/sync-mq-user-${sanitized_user}"
     else
-        echo "auth/auto-mq-sync"      
+        echo "auth/auto-mq-sync"
     fi
 }
 
@@ -305,7 +305,7 @@ create_pull_request() {
         log_error "PR CLI tool '$PR_CLI_TOOL' not found. Please install it or set PR_CLI_TOOL to 'none'."
         return 1
     fi
-    
+
     log "Attempting to create Pull Request using '$PR_CLI_TOOL'..."
     case "$PR_CLI_TOOL" in
         gh)
@@ -341,7 +341,7 @@ rollback_git_changes (){
         git checkout "$GIT_BRANCH"
         git branch -D "$branch_name"
         sleep "$SLEEP_INTERVAL"
-        cd .. 
+        cd ..
     fi
 }
 
