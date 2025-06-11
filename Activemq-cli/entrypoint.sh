@@ -91,6 +91,17 @@ generate_branch_name() {
     fi
 }
 
+fixed_branch_name() {
+    local username_part=$1 
+    
+    if [[ -n "$username_part" ]]; then
+        local sanitized_user=$(echo "$username_part" | sed 's/[^a-zA-Z0-9]/-/g' | cut -c1-30) 
+        echo "auth/sync-mq-user-${sanitized_user}"
+    else
+        echo "auth/auto-mq-sync"      
+    fi
+}
+
 check_duplicate() {
     local file=$1
     local destination_name=$2 # Original name (may contain '>')
@@ -294,11 +305,15 @@ create_pull_request() {
         log_error "PR CLI tool '$PR_CLI_TOOL' not found. Please install it or set PR_CLI_TOOL to 'none'."
         return 1
     fi
-
+    
     log "Attempting to create Pull Request using '$PR_CLI_TOOL'..."
     case "$PR_CLI_TOOL" in
         gh)
-            gh pr create --base "$target_branch_name" --head "$current_branch_name" --title "$pr_title" --body "$pr_body"
+            if gh pr list --head $BRANCH_NAME | grep -q "."; then
+               log "Pull Request already exists for branch ${BRANCH_NAME}. Nothing to do."
+            else
+                gh pr create --base "$target_branch_name" --head "$current_branch_name" --title "$pr_title" --body "$pr_body"
+            fi
             ;;
         glab)
             glab mr create --base "$target_branch_name" --head "$current_branch_name" --title "$pr_title" --description "$pr_body" --yes 
@@ -318,16 +333,35 @@ create_pull_request() {
     fi
 }
 
+rollback_git_changes (){
+    local error_message=$1
+    local branch_name=$2
+    log_error "$error_message"
+    if [[ "$RUN_ONCE" != "true" ]]; then
+        git checkout "$GIT_BRANCH"
+        git branch -D "$branch_name"
+        sleep "$SLEEP_INTERVAL"
+        cd .. 
+    fi
+}
+
 # === Main Monitoring Loop ===
 log "Starting ActiveMQ authorization sync script."
 log "Watching source file: $SOURCE_FILE_PATH"
 log "Repository: $GIT_REPO_URL"
 log "XML Path: $BROKER_NAME"
+log "Run once: $RUN_ONCE"
 log "Check interval: $SLEEP_INTERVAL seconds"
 log "Automatic PR creation tool: $PR_CLI_TOOL"
 log "Debug mode: $DEBUG_MODE"
 
-while true; do
+KEEP_RUNNING=true
+while [ "$KEEP_RUNNING" == "true" ]; do
+    # --- Runs once if requested by env variable ---
+    if [[ "$RUN_ONCE" == "true" ]]; then
+        KEEP_RUNNING=false
+    fi
+
     # --- Check Target Username ENV Var ---
     if [[ -z "$TARGET_USERNAME" ]]; then
         log_error "TARGET_USERNAME environment variable is not set or empty. Skipping run."
@@ -501,16 +535,25 @@ while true; do
         else
             log "Changes detected. Proceeding with Git operations for user '$TARGET_USERNAME'."
             
-            BRANCH_NAME=$(generate_branch_name "$TARGET_USERNAME") 
-            log "Creating and checking out new branch: $BRANCH_NAME (from $GIT_BRANCH)"
-            git checkout -b "$BRANCH_NAME" "$GIT_BRANCH" || { log_error "Could not create branch $BRANCH_NAME from $GIT_BRANCH."; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
+            BRANCH_NAME="TBD"
+            if [[ "$RUN_ONCE" == "true" ]]; then
+                BRANCH_NAME=$(fixed_branch_name "$TARGET_USERNAME") 
+                log "Creating and/or checking out fixed branch: $BRANCH_NAME for user $TARGET_USERNAME"
+                git checkout -b "$BRANCH_NAME" "$GIT_BRANCH" || git checkout "$BRANCH_NAME" \
+                     || { log_error "Could not create branch $BRANCH_NAME from $GIT_BRANCH."; continue; }
+            else
+                BRANCH_NAME=$(generate_branch_name "$TARGET_USERNAME") 
+                log "Creating and checking out new branch: $BRANCH_NAME (from $GIT_BRANCH)"
+                git checkout -b "$BRANCH_NAME" "$GIT_BRANCH" \
+                     || { log_error "Could not create branch $BRANCH_NAME from $GIT_BRANCH."; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
+            fi
             
             log "Staging changes..."
             if [ -f "$XML_FILE_FULL_PATH" ]; then
-                git add "$XML_FILE_FULL_PATH" || { log_error "Could not stage changes for $XML_FILE_FULL_PATH."; git checkout -- "$XML_FILE_FULL_PATH"; git checkout "$GIT_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
+                git add "$XML_FILE_FULL_PATH" || { rollback_git_changes "Could not stage changes for $XML_FILE_FULL_PATH." "$BRANCH_NAME"; continue; }
             else
-                log_error "File $XML_FILE_FULL_PATH not found after processing. Cannot stage changes."
-                git checkout "$GIT_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue;
+                rollback_git_changes "File $XML_FILE_FULL_PATH not found after processing. Cannot stage changes." "$BRANCH_NAME"
+                continue;
             fi
 
             COMMIT_SUBJECT="feat: Sync ActiveMQ auth for $TARGET_USERNAME"
@@ -518,10 +561,14 @@ while true; do
 
 Entries were added or removed to match the source file configuration."
             log "Committing changes..."
-            git commit -m "$COMMIT_SUBJECT" -m "$COMMIT_BODY" || { log_error "Could not commit changes."; git checkout "$GIT_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
+            git commit -m "$COMMIT_SUBJECT" -m "$COMMIT_BODY" || { rollback_git_changes "Could not commit changes." "$BRANCH_NAME"; continue; }
 
             log "Pushing branch '$BRANCH_NAME' to origin..."
-            git push -u origin "$BRANCH_NAME" || { log_error "Could not push branch $BRANCH_NAME to origin."; git checkout "$GIT_BRANCH"; git branch -D "$BRANCH_NAME"; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
+            if [[ "$RUN_ONCE" == "true" ]]; then
+                git push --force origin "$BRANCH_NAME" || { rollback_git_changes "Could not push branch $BRANCH_NAME to origin." "$BRANCH_NAME"; continue; }
+            else
+                git push -u origin "$BRANCH_NAME" || { rollback_git_changes "Could not push branch $BRANCH_NAME to origin." "$BRANCH_NAME"; continue; }
+            fi
 
             log "Branch '$BRANCH_NAME' pushed successfully."
             
