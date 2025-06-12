@@ -395,6 +395,27 @@ while [ "$KEEP_RUNNING" == "true" ]; do
 
         cd "$REPO_DIR" || { log_error "Critical: Could not change directory to $REPO_DIR after setup. Stopping."; exit 1; }
 
+        # --- Makeing new branch from $GIT_BRANCH, or fixed user branch (if it exists - previous PR not merged so updating) 
+        BRANCH_NAME="TBD"
+        if [[ "$RUN_ONCE" == "true" ]]; then
+            BRANCH_NAME=$(fixed_branch_name "$TARGET_USERNAME")
+            log "Creating and/or checking out fixed branch: $BRANCH_NAME for user $TARGET_USERNAME"
+            if git ls-remote --exit-code --heads origin "$BRANCH_NAME"; then
+                # --- BRANCH ALREADY EXISTS (PR is likely open) ---
+                log "Branch '$BRANCH_NAME' already exists on remote. Checking it out."
+                git checkout "$BRANCH_NAME" || { log_error "Could not create branch $BRANCH_NAME from $GIT_BRANCH."; continue; }
+            else
+                # --- BRANCH DOES NOT EXIST (First time or after a merge) ---
+                log "Branch '$BRANCH_NAME' does not exist on remote. Creating new branch from main."
+                git checkout -b "$BRANCH_NAME" || { log_error "Could not create branch $BRANCH_NAME from $GIT_BRANCH."; continue; }
+            fi
+        else
+            BRANCH_NAME=$(generate_branch_name "$TARGET_USERNAME")
+            log "Creating and checking out new branch: $BRANCH_NAME (from $GIT_BRANCH)"
+            git checkout -b "$BRANCH_NAME" "$GIT_BRANCH" \
+                || { log_error "Could not create branch $BRANCH_NAME from $GIT_BRANCH."; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
+        fi
+
         XML_FILE_FULL_PATH="$BROKER_NAME" 
         if [ ! -f "$XML_FILE_FULL_PATH" ]; then
             log_error "ActiveMQ XML file not found at '$XML_FILE_FULL_PATH'. Skipping processing."
@@ -535,19 +556,6 @@ while [ "$KEEP_RUNNING" == "true" ]; do
         else
             log "Changes detected. Proceeding with Git operations for user '$TARGET_USERNAME'."
             
-            BRANCH_NAME="TBD"
-            if [[ "$RUN_ONCE" == "true" ]]; then
-                BRANCH_NAME=$(fixed_branch_name "$TARGET_USERNAME") 
-                log "Creating and/or checking out fixed branch: $BRANCH_NAME for user $TARGET_USERNAME"
-                git checkout -b "$BRANCH_NAME" "$GIT_BRANCH" || git checkout "$BRANCH_NAME" \
-                     || { log_error "Could not create branch $BRANCH_NAME from $GIT_BRANCH."; continue; }
-            else
-                BRANCH_NAME=$(generate_branch_name "$TARGET_USERNAME") 
-                log "Creating and checking out new branch: $BRANCH_NAME (from $GIT_BRANCH)"
-                git checkout -b "$BRANCH_NAME" "$GIT_BRANCH" \
-                     || { log_error "Could not create branch $BRANCH_NAME from $GIT_BRANCH."; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
-            fi
-            
             log "Staging changes..."
             if [ -f "$XML_FILE_FULL_PATH" ]; then
                 git add "$XML_FILE_FULL_PATH" || { rollback_git_changes "Could not stage changes for $XML_FILE_FULL_PATH." "$BRANCH_NAME"; continue; }
@@ -587,7 +595,9 @@ Entries were added or removed to match the source file configuration."
     else
         : 
     fi
-    sleep "$SLEEP_INTERVAL"
+    if [[ "$RUN_ONCE" != "true" ]]; then
+        sleep "$SLEEP_INTERVAL"
+    fi
 done
 
 log "Script finished (unexpectedly)."
