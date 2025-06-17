@@ -35,8 +35,10 @@
 		<property name="driverClassName" value="org.postgresql.Driver"/>
 		<property name="jdbcUrl" value="JDBC_URL"/>
 		<!-- <property name="jdbcUrl" value="jdbc:postgresql://DB_HOST/DB_NAME"/> -->
-		<property name="username" value="DB_USERNAME"/>
-		<property name="password" value="DB_PASSWORD"/>
+		<!-- TODO - should be one more if, if used with PSQL based on cert auth and if based on basic auth -->
+
+		<!-- <property name="username" value="DB_USERNAME"/>
+		<property name="password" value="DB_PASSWORD"/> -->
 		<property name="poolName" value="hikari-amq-pool"/>
 		<property name="maximumPoolSize" value="100"/>
 		<property name="autoCommit" value="true"/>
