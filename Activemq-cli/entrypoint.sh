@@ -158,7 +158,7 @@ add_authorization_entry() {
     return 0
 }
 
-add_network_conector_entry() {
+add_network_connector_entry() {
     local file=$1
     local user=$2
 
@@ -276,6 +276,88 @@ remove_authorization_entry() {
     return 0
 }
 
+remove_bridged_entry() {
+    local file=$1
+    local user=$2
+    local destination=$3 # Original name (may contain '>')
+
+    # Ensure destination name is not empty before attempting removal
+    if [[ -z "$destination" ]]; then
+        log_error "Attempted to remove entry with empty destination name for user '$user'. Skipping."
+        return 1 # Indicate failure to remove
+    fi
+
+    local safe_user=$(echo "$user" | sed "s/'/&apos;/g; s/\"/&quot;/g")
+    local dest_type=$(echo "$destination" | cut -d: -f1)
+    local dest_name=$(echo "$destination" | cut -d: -f2-)
+    local safe_dest_name=$(echo "$dest_name" | sed "s/'/&apos;/g; s/\"/&quot;/g")
+
+    log "Removing $dest_type entry for user '$user' and destination '$dest_name' from $file"
+
+    local xpath_query="//networkConnectors/networkConnector[@userName='${safe_user}']/dynamicallyIncludedDestinations/${dest_type}[@physicalName='${safe_dest_name}']"
+
+    log_debug "[Remove] XPath for deletion: $xpath_query"
+    # Precheck
+    if xmlstarlet sel -Q -t -c "$xpath_query" "$file"; then
+        log_debug "PRECHECK [Remove] Entry EXISTS before attempting xmlstarlet ed -d."
+    else
+        log_debug "PRECHECK [Remove] Entry does NOT exist with XPath '$xpath_query' before attempting xmlstarlet ed -d. This might be okay if already removed or never existed according to this precise XPath."
+        return 0
+    fi
+
+    xmlstarlet ed -L -O -d "$xpath_query" "$file"
+    local delete_status=$?
+    if [[ $delete_status -ne 0 ]]; then
+        log_error "xmlstarlet ed -d command failed with status $delete_status for user '$user', destination '$dest_name'."
+        return 1
+    fi
+
+    # Verify deletion
+    if xmlstarlet sel -Q -t -c "$xpath_query" "$file"; then
+        log_error "VERIFICATION FAILED: [Remove] Entry for user '$user', $dest_type '$dest_name' still exists after attempting removal."
+        return 1
+    else
+        log "VERIFICATION PASSED: [Remove] Entry for user '$user', $dest_type '$dest_name' successfully removed."
+    fi
+    return 0
+}
+
+remove_network_connector_entry() {
+    local file=$1
+    local user=$2
+
+    local safe_user=$(echo "$user" | sed "s/'/&apos;/g; s/\"/&quot;/g")
+
+    log "Removing networkConnctor for '$user' from $file"
+
+    local xpath_query="//networkConnectors/networkConnector[@userName='${safe_user}']"
+
+    log_debug "[Remove] XPath for deletion: $xpath_query"
+    # Precheck
+    if xmlstarlet sel -Q -t -c "$xpath_query" "$file"; then
+        log_debug "PRECHECK [Remove] Entry EXISTS before attempting xmlstarlet ed -d."
+    else
+        log_debug "PRECHECK [Remove] Entry does NOT exist with XPath '$xpath_query' before attempting xmlstarlet ed -d. This might be okay if already removed or never existed according to this precise XPath."
+        return 0
+    fi
+
+    xmlstarlet ed -L -O -d "$xpath_query" "$file"
+    local delete_status=$?
+    if [[ $delete_status -ne 0 ]]; then
+        log_error "xmlstarlet ed -d command failed with status $delete_status for user '$user'."
+        return 1
+    fi
+
+    # Verify deletion
+    if xmlstarlet sel -Q -t -c "$xpath_query" "$file"; then
+        log_error "VERIFICATION FAILED: [Remove] networkConnector entry for user '$user' still exists after attempting removal."
+        return 1
+    else
+        log "VERIFICATION PASSED: [Remove] networkConnector entry for user '$user' successfully removed."
+    fi
+    return 0
+}
+
 get_existing_user_authorizations() {
     local file=$1
     local user=$2
@@ -316,9 +398,11 @@ get_existing_user_bridges() {
 
     local safe_user=$(echo "$user" | sed "s/'/&apos;/g; s/\"/&quot;/g")
 
+    # log "Searching bridged entry for user '$safe_user' from $file"
     # Get queue bridges for user
-    mapfile -t user_queues_raw < <(xmlstarlet sel -t -m "//networkConnector[@userName='$safe_user']/dynamicallyIncludedDestinations//*[self::queue]" -v "@physicalName" -n "$file" 2>/dev/null | sed '/^\s*$/d')
+    mapfile -t user_queues_raw < <(xmlstarlet sel -t -m "//networkConnectors/networkConnector[@userName='$safe_user']/dynamicallyIncludedDestinations//*[self::queue]" -v "@physicalName" -n "$file" 2>/dev/null | sed '/^\s*$/d')
     for item in "${user_queues_raw[@]}"; do
+        # log "   queue entry found: $item"
         local item_decoded=$(decode_xml_entities_for_value "$item")
         local item_trimmed=$(echo "$item_decoded" | xargs)
         if [[ -n "$item_trimmed" ]]; then
@@ -327,8 +411,9 @@ get_existing_user_bridges() {
     done
 
     # Get topic bridges for user
-    mapfile -t user_topics_raw < <(xmlstarlet sel -t -m "//networkConnector[@userName='$safe_user']/dynamicallyIncludedDestinations//*[self::topic]" -v "@physicalName" -n "$file" 2>/dev/null | sed '/^\s*$/d')
+    mapfile -t user_topics_raw < <(xmlstarlet sel -t -m "//networkConnectors/networkConnector[@userName='$safe_user']/dynamicallyIncludedDestinations//*[self::topic]" -v "@physicalName" -n "$file" 2>/dev/null | sed '/^\s*$/d')
     for item in "${user_topics_raw[@]}"; do
+        # log "   topic entry found: $item"
         local item_decoded=$(decode_xml_entities_for_value "$item")
         local item_trimmed=$(echo "$item_decoded" | xargs)
         if [[ -n "$item_trimmed" ]]; then
@@ -337,8 +422,8 @@ get_existing_user_bridges() {
     done
 
     # Print unique entries, one per line
-    if [[ ${#combined_maps[@]} -gt 0 ]]; then
-        printf "%s\n" "${combined_maps[@]}" | sort -u
+    if [[ ${#combined_map[@]} -gt 0 ]]; then
+        printf "%s\n" "${combined_map[@]}" | sort -u
     fi
 }
 
@@ -735,6 +820,7 @@ Entries were added or removed to match the source file configuration."
             # if desired_bridged_entries_map is empty and current_xml_bridges_arr not --> delete network connector from config file
             if [[ ${#desired_bridged_entries_map[@]} -eq 0 && ${#current_xml_bridges_arr[@]} -gt 0 ]]; then
                 log_debug "  Delete XML bridge connector setup for '$TARGET_USERNAME' (bridged entries count ${#current_xml_bridges_arr[@]}):"
+                remove_network_connector_entry "$XML_BRIDGES_FULL_PATH" "$TARGET_USERNAME" || continue
                 # empty current_xml_bridges_arr
                 current_xml_bridges_arr=()
                 changes_made_in_batch=true
@@ -743,7 +829,7 @@ Entries were added or removed to match the source file configuration."
             # if desired_bridged_entries_map is not empty but current_xml_bridges_arr is empty --> add network connector to config file
             if [[ ${#desired_bridged_entries_map[@]} -gt 0 && ${#current_xml_bridges_arr[@]} -eq 0 ]]; then
                 log_debug "  Add XML bridge connector setup for '$TARGET_USERNAME' (for new entries count ${#desired_bridged_entries_map[@]}):"
-                add_network_conector_entry "$XML_BRIDGES_FULL_PATH" "$TARGET_USERNAME" || continue
+                add_network_connector_entry "$XML_BRIDGES_FULL_PATH" "$TARGET_USERNAME" || continue
                 changes_made_in_batch=true
             fi
 
@@ -769,6 +855,9 @@ Entries were added or removed to match the source file configuration."
               if [[ ${#obsolete_bridged_entries[@]} -gt 0 ]]; then
                   log_debug "  Remove obsolete bridged entries for '$TARGET_USERNAME' (delete entries count ${#obsolete_bridged_entries[@]}):"
                   for entry_debug in "${obsolete_bridged_entries[@]}"; do log_debug "    - '$entry_debug'"; done
+                  for entry in "${obsolete_bridged_entries[@]}"; do 
+                      remove_bridged_entry "$XML_BRIDGES_FULL_PATH" "$TARGET_USERNAME" "$entry" || continue
+                  done
                   changes_made_in_batch=true
               fi
         fi
