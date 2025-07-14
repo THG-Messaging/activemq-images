@@ -1,7 +1,7 @@
 version: "3.8"
 networks:
   networkas:
-     driver: bridge
+    external: true
 services:
   postgres:
     container_name: postgres
@@ -10,7 +10,6 @@ services:
     environment:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
     networks:
       - networkas
   activemq:
@@ -73,10 +72,10 @@ services:
       - AUTH_TYPE=${AUTH_TYPE}
       - BRIDGE_CONNECTION_STRING=${BRIDGE_CONNECTION_STRING}
     env_file:
-      - path: ./.env
+      - path: .\.env
         required: true
 
-      - path: ./versions.env
+      - path: .\versions.env
         required: true
     volumes:
       - ./ssl:/opt/apache-activemq-5.18.5/conf/security/ssl/
