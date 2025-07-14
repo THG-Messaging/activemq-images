@@ -61,7 +61,7 @@ fix_gt_in_xml_attributes_final() {
     awk -F'"' -v OFS='"' '{
         for (i=2; i<=NF; i+=2) { # Loop through attribute values (even indices)
             # Check if the preceding field is queue= or topic=
-            if ($(i-1) ~ /(queue|topic)=$/) {
+            if ($(i-1) ~ /(queue|topic|physicalName)=$/) {
                 gsub(/&gt;/, ">", $i); # Replace &gt; with > within the value $i
             }
         }

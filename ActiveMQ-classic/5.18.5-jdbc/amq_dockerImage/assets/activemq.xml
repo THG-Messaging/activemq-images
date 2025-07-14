@@ -14,7 +14,10 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-
+<!DOCTYPE activemq [
+    <!ENTITY bridges SYSTEM "bridges-git.xml">
+    <!ENTITY authorization-rules SYSTEM "authorization-rules-git.xml">
+]>
 <beans
     xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -110,6 +113,7 @@
 
             http://activemq.apache.org/persistence.html
         -->
+        <!--
 		<persistenceAdapter>
 			<jdbcPersistenceAdapter dataSource="#postgres-ds-with-hikari-pool" createTablesOnStartup="CREATE_DB_TABLES" lockKeepAlivePeriod="5000">
 				<locker>
@@ -117,7 +121,7 @@
 				</locker>
 			</jdbcPersistenceAdapter>
 		</persistenceAdapter>
-
+        -->
 		<!--
             The systemUsage controls the maximum amount of space the broker will
             use before disabling caching and/or slowing down producers. For more information, see:
@@ -152,26 +156,12 @@
 		<plugins>
     		<jaasAuthenticationPlugin configuration="activemq-domain" />
 			<authorizationPlugin>
-<!--BeginAuth-->
-				<map>
-					<authorizationMap>
-
-						<authorizationEntries>
-							<authorizationEntry queue=">"                   read="applications,admins" write="applications,admins" admin="admins,applications" />
-							<authorizationEntry topic=">"                   read="applications,admins" write="applications,admins" admin="admins,applications" />
-							<authorizationEntry topic="ActiveMQ.Advisory.>" read="*" write="*" admin="*"/>
-						</authorizationEntries>
-
-					</authorizationMap>
-				</map>
-<!--EndAuth-->
+                            &authorization-rules;
 			</authorizationPlugin>
 			<runtimeConfigurationPlugin checkPeriod="10000" />
     	</plugins>
 
-<!--BeginBridges-->
-
-<!--EndBridges-->
+        &bridges;
 
 	</broker>
 	<!--
