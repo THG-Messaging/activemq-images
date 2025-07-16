@@ -14,10 +14,6 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<!DOCTYPE activemq [
-    <!ENTITY bridges SYSTEM "bridges-git.xml">
-    <!ENTITY authorization-rules SYSTEM "authorization-rules-git.xml">
-]>
 <beans
     xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -153,15 +149,24 @@
 			<bean xmlns="http://www.springframework.org/schema/beans" class="org.apache.activemq.hooks.SpringContextHook" />
 		</shutdownHooks>
 
-		<plugins>
-    		<jaasAuthenticationPlugin configuration="activemq-domain" />
-			<authorizationPlugin>
-                            &authorization-rules;
-			</authorizationPlugin>
-			<runtimeConfigurationPlugin checkPeriod="10000" />
+	<plugins>
+    	    <jaasAuthenticationPlugin configuration="activemq-domain" />
+	    <authorizationPlugin>
+                <map>
+                    <authorizationMap>
+                        <authorizationEntries>
+                            <authorizationEntry queue=">" read="applications,admins" write="applications,admins" admin="admins,applications" />
+                            <authorizationEntry topic=">" read="applications,admins" write="applications,admins" admin="admins,applications" />
+                            <authorizationEntry topic="ActiveMQ.Advisory.>" read="*" write="*" admin="*"/>
+                        </authorizationEntries>
+                    </authorizationMap>
+                </map>
+            </authorizationPlugin>
+	    <runtimeConfigurationPlugin checkPeriod="10000" />
     	</plugins>
 
-        &bridges;
+        <networkConnectors>
+        </networkConnectors>
 
 	</broker>
 	<!--

@@ -69,10 +69,8 @@ sed -i "s/admin=admin/admin=${ACTIVEMQ_ADMIN_PASS}/" /opt/apache-activemq-${AMQ_
 
 # JMX exporter
 if [ "$METRICS_ENABLED" = true ] ; then
-sed -i -e $'$a\\\nACTIVEMQ_OPTS="-Dhttp://apache.org/xml/features/disallow-doctype-decl=false -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar=${METRICS_PORT}:/opt/jmx_exporter/config.yaml"' /opt/apache-activemq-${AMQ_VERSION}/bin/env
+sed -i -e $'$a\\\nACTIVEMQ_OPTS="-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar=${METRICS_PORT}:/opt/jmx_exporter/config.yaml"' /opt/apache-activemq-${AMQ_VERSION}/bin/env
 fi
-
-grep jdbcUrl /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 
 echo "Starting supervisord..."
 exec /usr/bin/supervisord -n -c /opt/supervisor/supervisord.conf

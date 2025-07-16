@@ -1,9 +1,0 @@
-<map>
-  <authorizationMap>
-    <authorizationEntries>
-       <authorizationEntry queue=">"                   read="applications,admins" write="applications,admins" admin="admins,applications" />
-       <authorizationEntry topic=">"                   read="applications,admins" write="applications,admins" admin="admins,applications" />
-       <authorizationEntry topic="ActiveMQ.Advisory.>" read="*" write="*" admin="*"/>
-    </authorizationEntries>
-  </authorizationMap>
-</map>
