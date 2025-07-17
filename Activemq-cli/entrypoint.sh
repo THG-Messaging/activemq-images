@@ -791,12 +791,14 @@ Entries were added or removed to match the source file configuration."
         ### --- BRIDGES setup ---
         changes_made_in_batch=false
         XML_BRIDGES_FULL_PATH="$BROKER_NAME.bridges"
-        if [ ! -f "$XML_BRIDGES_FULL_PATH" ]; then
-            log_error "ActiveMQ XML file not found at '$XML_BRIDGES_FULL_PATH'. Creating ..."
-            printf '%s\n' "<networkConnectors>" "</networkConnectors>" > $XML_BRIDGES_FULL_PATH
-        fi
 
         if [[ "$UPDATE_BRIDGES" == "true" ]]; then
+            # --- Check for bridges file config ---
+            if [ ! -f "$XML_BRIDGES_FULL_PATH" ]; then
+                log_error "ActiveMQ XML file not found at '$XML_BRIDGES_FULL_PATH'. Creating ..."
+                printf '%s\n' "<networkConnectors>" "</networkConnectors>" > $XML_BRIDGES_FULL_PATH
+            fi
+
             # --- Phase 1: Collect Desired State from BRIDGEs File for TARGET_USERNAME ---
             declare -A desired_bridged_entries_map # Associative array: desired_bridged_entries_map[type:dest]=1
         
