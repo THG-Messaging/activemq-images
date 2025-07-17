@@ -3,9 +3,11 @@ name: Build ActiveMQ 5.18.5 JDBC docker image
 on: 
   push:
     branches: [ "main" ]
+    tags: [ 'amq-*.*.*' ]
     paths: ['ActiveMQ-classic/5.18.5-jdbc/**']
   pull_request:
     branches: [ "main" ]
+      types: [ opened, synchronize, labeled, unlabeled ]
 
 env:
   REGISTRY: ghcr.io
@@ -28,7 +30,6 @@ jobs:
           echo "BUILD_VERSION=$(date --rfc-3339=date)" >> ${GITHUB_ENV}
 
       - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
@@ -40,7 +41,13 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: 5.18.5-${{ env.BUILD_VERSION }}
+          tags: |
+            # Rule 1: For a push to the main branch, create tag '5.18.5-${{ env.BUILD_VERSION }}' as previously
+            type=raw,value=5.18.5-${{ env.BUILD_VERSION }},enable=${{ github.ref == 'refs/heads/main' }}
+            # Rule 2: For a Git Tag (e.g., amq-1.2.3), create tag 'amq-1.2.3'
+            type=ref,event=tag,enable=${{ startsWith(github.ref, 'refs/tags/amq-') }}
+            # Rule 3: For a labeled PR, create one combined tag
+            type=raw,value=5.18.5-${{ env.BUILD_VERSION }}-pr-${{ github.event.pull_request.number }},enable=${{ github.event_name == 'pull_request' }}
 
       - name: Extract Docker metadata
         id: meta-jmx
@@ -54,7 +61,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./ActiveMQ-classic/5.18.5-jdbc/amq_dockerImage
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-image-for-testing') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
