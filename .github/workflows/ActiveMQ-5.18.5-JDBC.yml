@@ -7,7 +7,7 @@ on:
     paths: ['ActiveMQ-classic/5.18.5-jdbc/**']
   pull_request:
     branches: [ "main" ]
-      types: [ opened, synchronize, labeled, unlabeled ]
+    types: [ opened, synchronize, labeled, unlabeled ]
 
 env:
   REGISTRY: ghcr.io
