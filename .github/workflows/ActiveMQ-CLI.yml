@@ -52,9 +52,7 @@ jobs:
             # Rule 2: For a Git Tag (e.g., cli-1.2.3), create tag 'cli-1.2.3'
             type=ref,event=tag,enable=${{ startsWith(github.ref, 'refs/tags/cli-') }}
             # Rule 3: For a labeled PR, create one combined tag
-            type=raw,
-            value=${{ env.BUILD_VERSION }}-pr-${{ github.event.pull_request.number }},
-            enable=${{ github.event_name == 'pull_request' }}
+            type=raw,value=${{ env.BUILD_VERSION }}-pr-${{ github.event.pull_request.number }},enable=${{ github.event_name == 'pull_request' }}
 
       - name: Build and push Docker image
         id: build-and-push
