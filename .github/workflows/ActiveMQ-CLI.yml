@@ -54,7 +54,7 @@ jobs:
             # Rule 3: For a labeled PR, create one combined tag
             type=raw,
             value=${{ env.BUILD_VERSION }}-pr-${{ github.event.pull_request.number }},
-            enable=${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build-image-for-testing') }}
+            enable=${{ github.event_name == 'pull_request' }}
 
       - name: Build and push Docker image
         id: build-and-push
