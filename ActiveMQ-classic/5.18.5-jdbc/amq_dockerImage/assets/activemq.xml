@@ -36,8 +36,8 @@
 		<!-- <property name="jdbcUrl" value="jdbc:postgresql://DB_HOST/DB_NAME"/> -->
 		<!-- TODO - should be one more if, if used with PSQL based on cert auth and if based on basic auth -->
 
-		<property name="username" value="DB_USERNAME"/>
-		<property name="password" value="DB_PASSWORD"/>
+		<!-- <property name="username" value="DB_USERNAME"/>
+		<property name="password" value="DB_PASSWORD"/> -->
 		<property name="poolName" value="hikari-amq-pool"/>
 		<property name="maximumPoolSize" value="100"/>
 		<property name="autoCommit" value="true"/>
@@ -113,7 +113,6 @@
 
             http://activemq.apache.org/persistence.html
         -->
-        <!--
 		<persistenceAdapter>
 			<jdbcPersistenceAdapter dataSource="#postgres-ds-with-hikari-pool" createTablesOnStartup="CREATE_DB_TABLES" lockKeepAlivePeriod="5000">
 				<locker>
@@ -121,7 +120,6 @@
 				</locker>
 			</jdbcPersistenceAdapter>
 		</persistenceAdapter>
-        -->
 		<!--
             The systemUsage controls the maximum amount of space the broker will
             use before disabling caching and/or slowing down producers. For more information, see:
