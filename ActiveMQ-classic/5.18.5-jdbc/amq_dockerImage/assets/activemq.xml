@@ -109,7 +109,6 @@
 
             http://activemq.apache.org/persistence.html
         -->
-        <!--
 		<persistenceAdapter>
 			<jdbcPersistenceAdapter dataSource="#postgres-ds-with-hikari-pool" createTablesOnStartup="CREATE_DB_TABLES" lockKeepAlivePeriod="5000">
 				<locker>
@@ -117,7 +116,6 @@
 				</locker>
 			</jdbcPersistenceAdapter>
 		</persistenceAdapter>
-        -->
 		<!--
             The systemUsage controls the maximum amount of space the broker will
             use before disabling caching and/or slowing down producers. For more information, see:
