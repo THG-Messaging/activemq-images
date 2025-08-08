@@ -25,7 +25,8 @@ ENV BROKER_NAME \
     STOMP_PORT \
     MQTT_ENABLED \
     MQTT_PORT \
-    SCHEDULER_SUPPORT
+    SCHEDULER_SUPPORT \
+    AUTH_TYPE
 
 RUN apk add --no-cache --upgrade bash git github-cli python3 py3-pip wget && \
     ln -sf python3 /usr/bin/python && \

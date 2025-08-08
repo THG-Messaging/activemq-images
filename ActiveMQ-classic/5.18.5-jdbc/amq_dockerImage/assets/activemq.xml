@@ -34,11 +34,7 @@
 	<bean id="postgres-ds-with-hikari-pool" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
 		<property name="driverClassName" value="org.postgresql.Driver"/>
 		<property name="jdbcUrl" value="JDBC_URL"/>
-		<!-- <property name="jdbcUrl" value="jdbc:postgresql://DB_HOST/DB_NAME"/> -->
-		<!-- TODO - should be one more if, if used with PSQL based on cert auth and if based on basic auth -->
-
-		<!-- <property name="username" value="DB_USERNAME"/>
-		<property name="password" value="DB_PASSWORD"/> -->
+		<!--DBAuthPlaceholder-->
 		<property name="poolName" value="hikari-amq-pool"/>
 		<property name="maximumPoolSize" value="100"/>
 		<property name="autoCommit" value="true"/>

@@ -69,7 +69,7 @@ services:
       - GIT_BRANCH=${GIT_BRANCH}
       - CHECK_INTERVAL=${CHECK_INTERVAL}
       - BROKER_NAME_FILE=${BROKER_NAME_FILE}
-
+      - AUTH_TYPE=${AUTH_TYPE}
     env_file:
       - path: .\.env
         required: true

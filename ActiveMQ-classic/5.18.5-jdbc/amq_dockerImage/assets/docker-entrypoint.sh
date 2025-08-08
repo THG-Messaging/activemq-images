@@ -11,8 +11,13 @@ sed -i "s/BROKER_NAME/${BROKER_NAME}/" /opt/lbchecker/lbchecker.py
 sed -i "s/DB_HOST/${DB_HOST}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s|JDBC_URL|$(echo "$JDBC_URL" | sed 's|&|\\&amp;|g')|g" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s/node-ID/${BROKER_NAME}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
+
+if [ "$AUTH_TYPE" = "basic" ] ; then
+sed -i 's|<!--DBAuthPlaceholder-->|<property name="username" value="DB_USERNAME"/>\n<property name="password" value="DB_PASSWORD"/>|g' /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s/DB_USERNAME/${DB_USERNAME}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 sed -i "s/DB_PASSWORD/${DB_PASSWORD}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
+fi
+
 # sed -i "s/DB_NAME/${DB_NAME}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 if [ "$SCHEDULER_SUPPORT" = true ] ; then
 sed -i "s/SCHEDULER_SUPPORT/${SCHEDULER_SUPPORT}/" /opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
