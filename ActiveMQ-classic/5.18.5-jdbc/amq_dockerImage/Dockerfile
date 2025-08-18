@@ -40,12 +40,12 @@ RUN apk add --no-cache --upgrade bash git github-cli python3 py3-pip wget && \
         ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/ssl
 
 # Download and extract in a single layer
-RUN wget -q https://archive.apache.org/dist/activemq/${AMQ_VERSION}/apache-activemq-${AMQ_VERSION}-bin.tar.gz -O /tmp/activemq.tar.gz && \
-    wget -q https://repo1.maven.org/maven2/com/zaxxer/HikariCP/${HIKARICP_VERSION}/HikariCP-${HIKARICP_VERSION}.jar -P ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/lib/optional/ && \
-    wget -q https://repo1.maven.org/maven2/org/postgresql/postgresql/${POSTGRESQL_JDBC_DRIVER}/postgresql-${POSTGRESQL_JDBC_DRIVER}.jar -P ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/lib/optional/ && \
-    wget -q https://github.com/prometheus/jmx_exporter/releases/download/${JMX_EXPORTER_VERSION}/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar -P /opt/jmx_exporter/ && \
-    tar -xzf /tmp/activemq.tar.gz -C ${ACTIVEMQ_WORKDIR} && \
-    rm /tmp/activemq.tar.gz
+RUN wget -q https://archive.apache.org/dist/activemq/${AMQ_VERSION}/apache-activemq-${AMQ_VERSION}-bin.tar.gz -O /tmp/activemq.tar.gz
+RUN wget -q https://repo1.maven.org/maven2/com/zaxxer/HikariCP/${HIKARICP_VERSION}/HikariCP-${HIKARICP_VERSION}.jar -P ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/lib/optional/
+RUN wget -q https://repo1.maven.org/maven2/org/postgresql/postgresql/${POSTGRESQL_JDBC_DRIVER}/postgresql-${POSTGRESQL_JDBC_DRIVER}.jar -P ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/lib/optional/
+RUN wget -q https://github.com/prometheus/jmx_exporter/releases/download/${JMX_EXPORTER_VERSION}/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar -P /opt/jmx_exporter/
+RUN tar -xzf /tmp/activemq.tar.gz -C ${ACTIVEMQ_WORKDIR}
+RUN rm /tmp/activemq.tar.gz
 
 RUN mv ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/users.properties ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/users/users.properties && \
     mv ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/groups.properties ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/groups/groups.properties
