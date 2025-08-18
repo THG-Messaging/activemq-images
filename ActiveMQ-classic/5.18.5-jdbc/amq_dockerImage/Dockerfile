@@ -28,7 +28,8 @@ ENV BROKER_NAME \
     SCHEDULER_SUPPORT \
     AUTH_TYPE
 
-RUN apk add --no-cache --upgrade bash git github-cli python3 py3-pip wget && \
+RUN echo ${AMQ_VERSION} && \
+    apk add --no-cache --upgrade bash git github-cli python3 py3-pip wget && \
     ln -sf python3 /usr/bin/python && \
     python3 -m venv /opt/pyvenv --system-site-packages && \
     /opt/pyvenv/bin/pip3 install requests flask && \
