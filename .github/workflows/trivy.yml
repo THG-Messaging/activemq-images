@@ -1,4 +1,4 @@
-name: trivy
+name: Trivy scan
 
 on:
   workflow_run:
@@ -22,8 +22,43 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Test vars
-        run: echo "${{ inputs.version }}"
+      - name: Download artifacts from the triggering workflow
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            const matchArtifact = artifacts.data.artifacts.find(artifact => artifact.name == "build-vars");
+            if (!matchArtifact) {
+                core.setFailed("Artifact 'build-vars' not found.");
+                return;
+            }
+            const download = await github.rest.actions.downloadArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: matchArtifact.id,
+              archive_format: 'zip',
+            });
+            const fs = require('fs');
+            fs.writeFileSync('build-vars.zip', Buffer.from(download.data));
+
+      - name: Unzip the artifact
+        run: unzip build-vars.zip
+
+      - name: Set environment variables from the file
+        shell: bash
+        run: |
+          # Read the file and set each variable in the GITHUB_ENV file
+          while IFS= read -r line || [ -n "$line" ]; do
+            echo "$line" >> $GITHUB_ENV
+          done < workflow_vars.txt
+
+      - name: Use the variables
+        run: |
+          echo "AMQ_VERSION is: $AMQ_VERSION"
 
       - name: Build an image from Dockerfile
         run: |
