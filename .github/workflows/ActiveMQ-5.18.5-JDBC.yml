@@ -1,4 +1,4 @@
-name: Build ActiveMQ 5.18.5 JDBC docker image
+name: Build ActiveMQ docker image
 
 on: 
   push:
