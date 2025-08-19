@@ -2,6 +2,7 @@
 source /config/config.env
 REPO_DIR="activemq-config-repo"
 SOURCE_FILE_PATH="/bindings/bindings"
+BRIDGES_FILE_PATH="/bindings/bridges"
 # Pull Request CLI tool: "gh" (GitHub CLI), "glab" (GitLab CLI), or "none"
 PR_CLI_TOOL="gh" # Set to "gh" or "glab" to enable automatic PR creation
 LAST_MOD_TIME=0
@@ -60,7 +61,7 @@ fix_gt_in_xml_attributes_final() {
     awk -F'"' -v OFS='"' '{
         for (i=2; i<=NF; i+=2) { # Loop through attribute values (even indices)
             # Check if the preceding field is queue= or topic=
-            if ($(i-1) ~ /(queue|topic)=$/) {
+            if ($(i-1) ~ /(queue|topic|physicalName)=$/) {
                 gsub(/&gt;/, ">", $i); # Replace &gt; with > within the value $i
             }
         }
@@ -157,6 +158,75 @@ add_authorization_entry() {
     return 0
 }
 
+add_network_connector_entry() {
+    local file=$1
+    local user=$2
+
+    local safe_user=$(echo "$user" | sed "s/'/&apos;/g; s/\"/&quot;/g")
+    local query="//networkConnectors/networkConnector[@userName='${safe_user}']"
+
+    xmlstarlet sel -Q -t -c "$query" "$file" 2>/dev/null
+    if [[ $? -eq 0 ]]; then
+        return 0 # Already found networkConnector entry for user
+    fi
+
+    log "Adding networkConnector entry for user '${safe_user}' to $file"
+    # Let xmlstarlet encode '>' to '&gt;' if needed
+    xmlstarlet ed -L -O \
+        -s "//networkConnectors" -t elem -n "networkConnectorTMP" -v "" \
+        -i "//networkConnectors/networkConnectorTMP" -t attr -n "name" -v "bridge-for-${safe_user}" \
+        -i "//networkConnectors/networkConnectorTMP" -t attr -n "uri" -v "TBD" \
+        -i "//networkConnectors/networkConnectorTMP" -t attr -n "dynamicOnly" -v "true" \
+        -i "//networkConnectors/networkConnectorTMP" -t attr -n "decreaseNetworkConsumerPriority" -v "true" \
+        -i "//networkConnectors/networkConnectorTMP" -t attr -n "networkTTL" -v "2" \
+        -i "//networkConnectors/networkConnectorTMP" -t attr -n "suppressDuplicateQueueSubscriptions" -v "true" \
+        -i "//networkConnectors/networkConnectorTMP" -t attr -n "userName" -v "${safe_user}" \
+        -i "//networkConnectors/networkConnectorTMP" -t attr -n "password" -v "TBD" \
+        -s "//networkConnectors/networkConnectorTMP" -t elem -n "dynamicallyIncludedDestinations" \
+        -s "//networkConnectors/networkConnectorTMP" -t elem -n "excludedDestinations" \
+        -s "//networkConnectors/networkConnectorTMP/excludedDestinations" -t elem -n "queue1" \
+        -s "//networkConnectors/networkConnectorTMP/excludedDestinations" -t elem -n "queue2" \
+        -i "//networkConnectors/networkConnectorTMP/excludedDestinations/queue1" -t attr -n "physicalName" -v ">.dlq" \
+        -i "//networkConnectors/networkConnectorTMP/excludedDestinations/queue2" -t attr -n "physicalName" -v ">.DLQ" \
+        -r "//networkConnectors/networkConnectorTMP/excludedDestinations/queue1" -v "queue" \
+        -r "//networkConnectors/networkConnectorTMP/excludedDestinations/queue2" -v "queue" \
+        -r "//networkConnectors/networkConnectorTMP" -v "networkConnector" \
+        "$file"
+    local status=$?
+
+    if [[ $status -ne 0 ]]; then
+        log_error "Failed to add networkConnector entry for user '$user', using xmlstarlet."
+        return 1
+    fi
+    return 0
+}
+
+add_bridged_entry() {
+    local file=$1
+    local user=$2
+    local destination=$3 # Original name (may contain '>')
+
+    local safe_user=$(echo "$user" | sed "s/'/&apos;/g; s/\"/&quot;/g")
+    local dest_type=$(echo "$destination" | cut -d: -f1)
+    local dest_name=$(echo "$destination" | cut -d: -f2-)
+
+
+    log "Adding $dest_type entry for user '$user' and destination '$dest_name' to $file"
+    # Let xmlstarlet encode '>' to '&gt;' if needed
+    xmlstarlet ed -L -O \
+        -s "//networkConnectors/networkConnector[@userName='${safe_user}']/dynamicallyIncludedDestinations" -t elem -n "${dest_type}TMP" \
+        -i "//networkConnectors/networkConnector/dynamicallyIncludedDestinations/${dest_type}TMP" -t attr -n "physicalName" -v "$dest_name" \
+        -r "//networkConnectors/networkConnector/dynamicallyIncludedDestinations/${dest_type}TMP" -v "$dest_type" \
+        "$file"
+    local status=$?
+
+    if [[ $status -ne 0 ]]; then
+        log_error "Failed to add $destination_type entry for user '$user', destination '$destination_name' using xmlstarlet."
+        return 1
+    fi
+    return 0
+}
+
 remove_authorization_entry() {
     local file=$1
     local user=$2
@@ -206,6 +276,88 @@ remove_authorization_entry() {
     return 0
 }
 
+remove_bridged_entry() {
+    local file=$1
+    local user=$2
+    local destination=$3 # Original name (may contain '>')
+
+    # Ensure destination name is not empty before attempting removal
+    if [[ -z "$destination" ]]; then
+        log_error "Attempted to remove entry with empty destination name for user '$user'. Skipping."
+        return 1 # Indicate failure to remove
+    fi
+
+    local safe_user=$(echo "$user" | sed "s/'/&apos;/g; s/\"/&quot;/g")
+    local dest_type=$(echo "$destination" | cut -d: -f1)
+    local dest_name=$(echo "$destination" | cut -d: -f2-)
+    local safe_dest_name=$(echo "$dest_name" | sed "s/'/&apos;/g; s/\"/&quot;/g")
+
+    log "Removing $dest_type entry for user '$user' and destination '$dest_name' from $file"
+
+    local xpath_query="//networkConnectors/networkConnector[@userName='${safe_user}']/dynamicallyIncludedDestinations/${dest_type}[@physicalName='${safe_dest_name}']"
+
+    log_debug "[Remove] XPath for deletion: $xpath_query"
+    # Precheck
+    if xmlstarlet sel -Q -t -c "$xpath_query" "$file"; then
+        log_debug "PRECHECK [Remove] Entry EXISTS before attempting xmlstarlet ed -d."
+    else
+        log_debug "PRECHECK [Remove] Entry does NOT exist with XPath '$xpath_query' before attempting xmlstarlet ed -d. This might be okay if already removed or never existed according to this precise XPath."
+        return 0
+    fi
+
+    xmlstarlet ed -L -O -d "$xpath_query" "$file"
+    local delete_status=$?
+    if [[ $delete_status -ne 0 ]]; then
+        log_error "xmlstarlet ed -d command failed with status $delete_status for user '$user', destination '$dest_name'."
+        return 1
+    fi
+
+    # Verify deletion
+    if xmlstarlet sel -Q -t -c "$xpath_query" "$file"; then
+        log_error "VERIFICATION FAILED: [Remove] Entry for user '$user', $dest_type '$dest_name' still exists after attempting removal."
+        return 1
+    else
+        log "VERIFICATION PASSED: [Remove] Entry for user '$user', $dest_type '$dest_name' successfully removed."
+    fi
+    return 0
+}
+
+remove_network_connector_entry() {
+    local file=$1
+    local user=$2
+
+    local safe_user=$(echo "$user" | sed "s/'/&apos;/g; s/\"/&quot;/g")
+
+    log "Removing networkConnctor for '$user' from $file"
+
+    local xpath_query="//networkConnectors/networkConnector[@userName='${safe_user}']"
+
+    log_debug "[Remove] XPath for deletion: $xpath_query"
+    # Precheck
+    if xmlstarlet sel -Q -t -c "$xpath_query" "$file"; then
+        log_debug "PRECHECK [Remove] Entry EXISTS before attempting xmlstarlet ed -d."
+    else
+        log_debug "PRECHECK [Remove] Entry does NOT exist with XPath '$xpath_query' before attempting xmlstarlet ed -d. This might be okay if already removed or never existed according to this precise XPath."
+        return 0
+    fi
+
+    xmlstarlet ed -L -O -d "$xpath_query" "$file"
+    local delete_status=$?
+    if [[ $delete_status -ne 0 ]]; then
+        log_error "xmlstarlet ed -d command failed with status $delete_status for user '$user'."
+        return 1
+    fi
+
+    # Verify deletion
+    if xmlstarlet sel -Q -t -c "$xpath_query" "$file"; then
+        log_error "VERIFICATION FAILED: [Remove] networkConnector entry for user '$user' still exists after attempting removal."
+        return 1
+    else
+        log "VERIFICATION PASSED: [Remove] networkConnector entry for user '$user' successfully removed."
+    fi
+    return 0
+}
+
 get_existing_user_authorizations() {
     local file=$1
     local user=$2
@@ -239,6 +391,41 @@ get_existing_user_authorizations() {
     fi
 }
 
+get_existing_user_bridges() {
+    local file=$1
+    local user=$2
+    local -a combined_map # Local indexed array
+
+    local safe_user=$(echo "$user" | sed "s/'/&apos;/g; s/\"/&quot;/g")
+
+    # log "Searching bridged entry for user '$safe_user' from $file"
+    # Get queue bridges for user
+    mapfile -t user_queues_raw < <(xmlstarlet sel -t -m "//networkConnectors/networkConnector[@userName='$safe_user']/dynamicallyIncludedDestinations//*[self::queue]" -v "@physicalName" -n "$file" 2>/dev/null | sed '/^\s*$/d')
+    for item in "${user_queues_raw[@]}"; do
+        # log "   queue entry found: $item"
+        local item_decoded=$(decode_xml_entities_for_value "$item")
+        local item_trimmed=$(echo "$item_decoded" | xargs)
+        if [[ -n "$item_trimmed" ]]; then
+             combined_map+=("queue:$item_trimmed")
+        fi
+    done
+
+    # Get topic bridges for user
+    mapfile -t user_topics_raw < <(xmlstarlet sel -t -m "//networkConnectors/networkConnector[@userName='$safe_user']/dynamicallyIncludedDestinations//*[self::topic]" -v "@physicalName" -n "$file" 2>/dev/null | sed '/^\s*$/d')
+    for item in "${user_topics_raw[@]}"; do
+        # log "   topic entry found: $item"
+        local item_decoded=$(decode_xml_entities_for_value "$item")
+        local item_trimmed=$(echo "$item_decoded" | xargs)
+        if [[ -n "$item_trimmed" ]]; then
+            combined_map+=("topic:$item_trimmed")
+        fi
+    done
+
+    # Print unique entries, one per line
+    if [[ ${#combined_map[@]} -gt 0 ]]; then
+        printf "%s\n" "${combined_map[@]}" | sort -u
+    fi
+}
 
 # Function to setup/update the local git repository
 setup_repo() {
@@ -271,7 +458,7 @@ setup_repo() {
         log "Local $GIT_BRANCH is now up-to-date with origin/$GIT_BRANCH."
         cd .. || { log_error "Could not change directory back from $REPO_DIR"; return 1; } 
     else
-        log "Cloning repository $GIT_REPO_URL into '$REPO_DIR'..."
+        log "Cloning repository $GIT_REPO_URL into '$REPO_DIR', branch $GIT_BRANCH ..."
         rm -rf "$REPO_DIR" 
         git clone --branch "$GIT_BRANCH" "$GIT_REPO_URL" "$REPO_DIR" || { log_error "Could not clone repository."; return 1; }
     fi
@@ -345,9 +532,58 @@ rollback_git_changes (){
     fi
 }
 
+parse_requests() {
+    local source_file="$1"
+    # 'declare -n' creates a name reference.
+    # 'target_map' now points to the variable whose name was passed as the second argument.
+    local -n target_map="$2"
+
+    # Ensure the target is actually an associative array
+    if ! declare -p "$2" 2>/dev/null | grep -q 'declare -A'; then
+        log_error "Error: Second argument must be the name of a declared associative array."
+        return 1
+    fi
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+            [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+            log_debug "Read line from source: '$line'"
+            IFS=',' read -r -a fields <<< "$line"
+
+            # A valid line must have at least two fields (one destination and one type)
+            if [[ "${#fields[@]}" -lt 2 ]]; then
+                log_error "Warning: Malformed line, expected at least 2 fields: '$line'. Skipping."
+                continue
+            fi
+            dest_type="${fields[-1]}"
+            dest_type=$(echo "${dest_type,,}" | xargs) # trim
+
+            # Validate the type
+            if [[ "$dest_type" != "queue" && "$dest_type" != "topic" ]]; then
+                log_error "Warning: Invalid type '$dest_type' for destination '$dest_name'. Skipping line."
+                continue
+            fi
+
+            for dest_name_raw in "${fields[@]:0:${#fields[@]}-1}"; do
+                dest_name=$(echo "$dest_name_raw" | xargs) # trim
+                if [[ -z "$dest_name" ]]; then
+                    continue
+                fi
+                entry_to_store="${dest_type}:${dest_name}"
+                log_debug "    Dest name: '$dest_name', Type: '$dest_type', Entry to store: '$entry_to_store'"
+                if [[ -z "${target_map[$entry_to_store]}" ]]; then
+                    target_map["$entry_to_store"]=1
+                    log_debug "      Added to desired_*_map: ['$entry_to_store']=1. Current map keys: (${!target_map[@]})"
+                else
+                    log_debug "      Entry '$entry_to_store' already in desired_auths_map"
+                fi
+            done
+    done < "$source_file"
+}
+
 # === Main Monitoring Loop ===
 log "Starting ActiveMQ authorization sync script."
 log "Watching source file: $SOURCE_FILE_PATH"
+log "Watching bridges source file: $BRIDGES_FILE_PATH"
 log "Repository: $GIT_REPO_URL"
 log "XML Path: $BROKER_NAME"
 log "Run once: $RUN_ONCE"
@@ -355,6 +591,7 @@ log "Check interval: $SLEEP_INTERVAL seconds"
 log "Automatic PR creation tool: $PR_CLI_TOOL"
 log "Debug mode: $DEBUG_MODE"
 
+UPDATE_BRIDGES=true
 KEEP_RUNNING=true
 while [ "$KEEP_RUNNING" == "true" ]; do
     # --- Runs once if requested by env variable ---
@@ -365,7 +602,7 @@ while [ "$KEEP_RUNNING" == "true" ]; do
     # --- Check Target Username ENV Var ---
     if [[ -z "$TARGET_USERNAME" ]]; then
         log_error "TARGET_USERNAME environment variable is not set or empty. Skipping run."
-        sleep "$SLEEP_INTERVAL"
+        [[ "$RUN_ONCE" == "true" ]] || sleep "$SLEEP_INTERVAL"
         continue
     fi
     log "Processing for target user: '$TARGET_USERNAME'"
@@ -373,25 +610,42 @@ while [ "$KEEP_RUNNING" == "true" ]; do
     # --- Check Source File ---
     if [ ! -f "$SOURCE_FILE_PATH" ]; then
         log_error "Source file '$SOURCE_FILE_PATH' not found. Skipping check."
-        sleep "$SLEEP_INTERVAL"
+        [[ "$RUN_ONCE" == "true" ]] || sleep "$SLEEP_INTERVAL"
         continue
+    fi
+
+    # --- Check bridges source File ---
+    if [ ! -f "$BRIDGES_FILE_PATH" ]; then
+        log_error "Source file '$BRIDGES_FILE_PATH' not found. Skipping bridges setup."
+        UPDATE_BRIDGES=false
     fi
 
     CURRENT_MOD_TIME=$(stat -c %Y "$SOURCE_FILE_PATH" 2>/dev/null || stat -f %m "$SOURCE_FILE_PATH" 2>/dev/null)
     if [[ -z "$CURRENT_MOD_TIME" ]]; then
          log_error "Could not get modification time for '$SOURCE_FILE_PATH'. Skipping check."
-         sleep "$SLEEP_INTERVAL"
+         [[ "$RUN_ONCE" == "true" ]] || sleep "$SLEEP_INTERVAL"
          continue
     fi
 
-    if [[ "$CURRENT_MOD_TIME" -gt "$LAST_MOD_TIME" ]]; then
+    BRIDGES_MOD_TIME=$LAST_MOD_TIME
+    if [[ "$UPDATE_BRIDGES" == "true" ]]; then
+        BRIDGES_MOD_TIME=$(stat -c %Y "$BRIDGES_FILE_PATH" 2>/dev/null || stat -f %m "$BRIDGES_FILE_PATH" 2>/dev/null)
+        if [[ -z "$BRIDGES_MOD_TIME" ]]; then
+            log_error "Could not get modification time for '$BRIDGES_FILE_PATH'. Skipping bridges setup."
+            UPDATE_BRIDGES=false
+        fi
+    fi 
+
+    if [[ "$CURRENT_MOD_TIME" -gt "$LAST_MOD_TIME" || "$BRIDGES_MOD_TIME" -gt "$LAST_MOD_TIME" ]]; then
         log "Detected change in source file '$SOURCE_FILE_PATH' (Mod Time: $CURRENT_MOD_TIME)."
+        log "    or in bridges file '$BRIDGES_FILE_PATH' (Mod Time: $BRIDGES_MOD_TIME)."
 
         if ! setup_repo; then
              log_error "Failed to setup/update repository. Skipping processing run."
-             sleep "$SLEEP_INTERVAL"
+             [[ "$RUN_ONCE" == "true" ]] || sleep "$SLEEP_INTERVAL"
              continue 
         fi
+        GIT_REPO_UPDATED=false
 
         cd "$REPO_DIR" || { log_error "Critical: Could not change directory to $REPO_DIR after setup. Stopping."; exit 1; }
 
@@ -404,9 +658,12 @@ while [ "$KEEP_RUNNING" == "true" ]; do
                 # --- BRANCH ALREADY EXISTS (PR is likely open) ---
                 log "Branch '$BRANCH_NAME' already exists on remote. Checking it out."
                 git checkout "$BRANCH_NAME" || { log_error "Could not create branch $BRANCH_NAME from $GIT_BRANCH."; continue; }
+
+                log "Rebasing '$BRANCH_NAME' on top of latest 'origin/$GIT_BRANCH'."
+                git rebase origin/$GIT_BRANCH || { log_error "Could not rebase $BRANCH_NAME on origin/$GIT_BRANCH."; continue; }
             else
                 # --- BRANCH DOES NOT EXIST (First time or after a merge) ---
-                log "Branch '$BRANCH_NAME' does not exist on remote. Creating new branch from main."
+                log "Branch '$BRANCH_NAME' does not exist on remote. Creating new branch from origin/$GIT_BRANCH."
                 git checkout -b "$BRANCH_NAME" || { log_error "Could not create branch $BRANCH_NAME from $GIT_BRANCH."; continue; }
             fi
         else
@@ -416,68 +673,25 @@ while [ "$KEEP_RUNNING" == "true" ]; do
                 || { log_error "Could not create branch $BRANCH_NAME from $GIT_BRANCH."; cd ..; sleep "$SLEEP_INTERVAL"; continue; }
         fi
 
+        ### --- AUTH setup ---
+
         XML_FILE_FULL_PATH="$BROKER_NAME" 
         if [ ! -f "$XML_FILE_FULL_PATH" ]; then
             log_error "ActiveMQ XML file not found at '$XML_FILE_FULL_PATH'. Skipping processing."
             cd .. 
-            sleep "$SLEEP_INTERVAL"
+            [[ "$RUN_ONCE" == "true" ]] || sleep "$SLEEP_INTERVAL"
             continue
         fi
 
         # --- Phase 1: Collect Desired State from Source File for TARGET_USERNAME ---
-        declare -A desired_auths_map_this_user # Associative array: desired_auths_map_this_user[type:dest]=1
-
+        declare -A desired_auths_map # Associative array: desired_auths_map[type:dest]=1
         log "Phase 1: Parsing source file '$SOURCE_FILE_PATH' to determine desired state for user '$TARGET_USERNAME'..."
-        while IFS= read -r line || [[ -n "$line" ]]; do
-            log_debug "Read line from source: '$line'"
-            line=$(echo "$line" | sed 's/,$//') 
-            IFS=',' read -r -a fields <<< "$line"
-            
-            # Source file no longer contains username
-            
-            declare -a destination_names_arr
-            destination_type_val="queue" 
-            num_fields_val=${#fields[@]}
 
-            if [[ $num_fields_val -lt 1 ]]; then # Need at least one destination field
-                log_error "Skipping malformed line (num_fields: $num_fields_val < 1) for line: '$line'"
-                continue
-            fi
+        parse_requests "../$SOURCE_FILE_PATH" "desired_auths_map"
 
-            last_field_val_lower_val=$(echo "${fields[$((num_fields_val - 1))]}" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-            destinations_end_index_val=$((num_fields_val - 1)) 
-
-            if [[ "$last_field_val_lower_val" == "topic" ]]; then
-                destination_type_val="topic"
-                destinations_end_index_val=$((num_fields_val - 2)) 
-            elif [[ "$last_field_val_lower_val" == "queue" ]]; then
-                destination_type_val="queue" 
-                destinations_end_index_val=$((num_fields_val - 2)) 
-            fi
-            
-            if [[ $destinations_end_index_val -lt 0 ]]; then # Check if index is valid
-                 log_error "Skipping malformed line (dest_idx: $destinations_end_index_val < 0): '$line'"
-                 continue
-            fi
-
-            for (( i=0; i<=destinations_end_index_val; i++ )); do # Index starts from 0 now
-                dest_name_trimmed=$(echo "${fields[$i]}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-                if [[ -n "$dest_name_trimmed" ]]; then
-                    entry_to_store="${destination_type_val}:${dest_name_trimmed}"
-                    log_debug "    Dest name: '$dest_name_trimmed', Type: '$destination_type_val', Entry to store: '$entry_to_store'"
-                    # Add to map if not already present
-                    if [[ -z "${desired_auths_map_this_user[$entry_to_store]}" ]]; then
-                        desired_auths_map_this_user["$entry_to_store"]=1
-                        log_debug "      Added to desired_auths_map_this_user: ['$entry_to_store']=1. Current map keys: (${!desired_auths_map_this_user[@]})"
-                    else
-                        log_debug "      Entry '$entry_to_store' already in desired_auths_map_this_user"
-                    fi
-                fi
-            done
-        done < "../$SOURCE_FILE_PATH"
         log "Phase 1: Desired state collection complete for user '$TARGET_USERNAME'."
-        log_debug "  Built desired_auths_map_this_user for '$TARGET_USERNAME' (keys count ${#desired_auths_map_this_user[@]}):"
-        for key_debug in "${!desired_auths_map_this_user[@]}"; do log_debug "    - '$key_debug'"; done
+        log_debug "  Built desired_auths_map for '$TARGET_USERNAME' (keys count ${#desired_auths_map[@]}):"
+        for key_debug in "${!desired_auths_map[@]}"; do log_debug "    - '$key_debug'"; done
 
         # --- Phase 2: Synchronize activemq.xml for TARGET_USERNAME ---
         log "Phase 2: Synchronizing activemq.xml for user '$TARGET_USERNAME'..."
@@ -486,13 +700,13 @@ while [ "$KEEP_RUNNING" == "true" ]; do
         # Get existing authorizations into an indexed array for the target user
         mapfile -t current_xml_auths_arr < <(get_existing_user_authorizations "$XML_FILE_FULL_PATH" "$TARGET_USERNAME")
         log_debug "  Existing XML auths for '$TARGET_USERNAME' (count ${#current_xml_auths_arr[@]}):"
-        for existing_entry_debug in "${current_xml_auths_arr[@]}"; do log_debug "    - '$existing_entry_debug'"; done
+        for entry_debug in "${current_xml_auths_arr[@]}"; do log_debug "    - '$entry_debug'"; done
 
         # Removals: Iterate existing XML entries and remove if not in desired map
         log_debug "Checking for removals for user '$TARGET_USERNAME'..."
         for existing_auth_entry in "${current_xml_auths_arr[@]}"; do
              log_debug "  Checking existing XML entry: '$existing_auth_entry'"
-            if [[ -z "${desired_auths_map_this_user[$existing_auth_entry]}" ]]; then # Check if key exists in desired map
+            if [[ -z "${desired_auths_map[$existing_auth_entry]}" ]]; then # Check if key exists in desired map
                 log_debug "    '$existing_auth_entry' NOT in desired map. Preparing to remove."
                 existing_type=$(echo "$existing_auth_entry" | cut -d: -f1)
                 existing_name=$(echo "$existing_auth_entry" | cut -d: -f2-) 
@@ -512,7 +726,7 @@ while [ "$KEEP_RUNNING" == "true" ]; do
 
         # Additions: Iterate desired entries and add if not in current XML array
         log_debug "Checking for additions for user '$TARGET_USERNAME'..."
-        for desired_auth_entry in "${!desired_auths_map_this_user[@]}"; do
+        for desired_auth_entry in "${!desired_auths_map[@]}"; do
              log_debug "  Checking desired entry: '$desired_auth_entry'"
              is_existing_in_xml=false
              for current_entry_from_xml_arr in "${current_xml_auths_arr[@]}"; do # Iterate the original array from XML
@@ -552,7 +766,7 @@ while [ "$KEEP_RUNNING" == "true" ]; do
         fi
         
         if ! $changes_made_in_batch; then
-            log "No changes were made to $BROKER_NAME for user '$TARGET_USERNAME'."
+            log "No auth changes were made to $BROKER_NAME for user '$TARGET_USERNAME'."
         else
             log "Changes detected. Proceeding with Git operations for user '$TARGET_USERNAME'."
             
@@ -570,7 +784,114 @@ while [ "$KEEP_RUNNING" == "true" ]; do
 Entries were added or removed to match the source file configuration."
             log "Committing changes..."
             git commit -m "$COMMIT_SUBJECT" -m "$COMMIT_BODY" || { rollback_git_changes "Could not commit changes." "$BRANCH_NAME"; continue; }
+            GIT_REPO_UPDATED=true
+        fi
+        ### --- AUTH setup (END) ---
 
+        ### --- BRIDGES setup ---
+        changes_made_in_batch=false
+        XML_BRIDGES_FULL_PATH="$BROKER_NAME.bridges"
+
+        if [[ "$UPDATE_BRIDGES" == "true" ]]; then
+            # --- Check for bridges file config ---
+            if [ ! -f "$XML_BRIDGES_FULL_PATH" ]; then
+                log_error "ActiveMQ XML file not found at '$XML_BRIDGES_FULL_PATH'. Creating ..."
+                printf '%s\n' "<networkConnectors>" "</networkConnectors>" > $XML_BRIDGES_FULL_PATH
+            fi
+
+            # --- Phase 1: Collect Desired State from BRIDGEs File for TARGET_USERNAME ---
+            declare -A desired_bridged_entries_map # Associative array: desired_bridged_entries_map[type:dest]=1
+        
+            log "Phase 1: Parsing bridges file '$BRIDGES_FILE_PATH' to determine desired state for user '$TARGET_USERNAME'..."
+
+            parse_requests "../$BRIDGES_FILE_PATH" "desired_bridged_entries_map"
+
+            log "Phase 1: Desired bridges state collection complete for user '$TARGET_USERNAME'."
+            log_debug "  Built desired_bridged_entries_map for '$TARGET_USERNAME' (keys count ${#desired_bridged_entries_map[@]}):"
+            for key_debug in "${!desired_bridged_entries_map[@]}"; do log_debug "    - '$key_debug'"; done
+
+            # --- Phase 2: Synchronize activemq.bridges for TARGET_USERNAME ---
+            log "Phase 2: Synchronizing activemq.bridges for user '$TARGET_USERNAME'..."
+            changes_made_in_batch=false
+
+            # Get existing bridges into an indexed array for the target user
+            mapfile -t current_xml_bridges_arr < <(get_existing_user_bridges "$XML_BRIDGES_FULL_PATH" "$TARGET_USERNAME")
+            log_debug "  Existing XML bridges for '$TARGET_USERNAME' (count ${#current_xml_bridges_arr[@]}):"
+            for entry_debug in "${current_xml_bridges_arr[@]}"; do log_debug "    - '$entry_debug'"; done
+
+            # if desired_bridged_entries_map is empty and current_xml_bridges_arr not --> delete network connector from config file
+            if [[ ${#desired_bridged_entries_map[@]} -eq 0 && ${#current_xml_bridges_arr[@]} -gt 0 ]]; then
+                log_debug "  Delete XML bridge connector setup for '$TARGET_USERNAME' (bridged entries count ${#current_xml_bridges_arr[@]}):"
+                remove_network_connector_entry "$XML_BRIDGES_FULL_PATH" "$TARGET_USERNAME" || continue
+                # empty current_xml_bridges_arr
+                current_xml_bridges_arr=()
+                changes_made_in_batch=true
+            fi
+
+            # if desired_bridged_entries_map is not empty but current_xml_bridges_arr is empty --> add network connector to config file
+            if [[ ${#desired_bridged_entries_map[@]} -gt 0 && ${#current_xml_bridges_arr[@]} -eq 0 ]]; then
+                log_debug "  Add XML bridge connector setup for '$TARGET_USERNAME' (for new entries count ${#desired_bridged_entries_map[@]}):"
+                add_network_connector_entry "$XML_BRIDGES_FULL_PATH" "$TARGET_USERNAME" || continue
+                changes_made_in_batch=true
+            fi
+
+            # sync desired_bridged_entries_map with current_xml_bridges_arr -->
+
+              # if any (desired_bridged_entries_map - current_xml_bridges_arr) --> add such items
+              mapfile -t new_bridged_entries < \
+                      <(comm -23 <(printf '%s\n' "${!desired_bridged_entries_map[@]}" | sort | grep .) \
+                                 <(printf '%s\n' "${current_xml_bridges_arr[@]}" | sort | grep .))
+              if [[ ${#new_bridged_entries[@]} -gt 0 ]]; then
+                  log_debug "  Add new bridged entries for '$TARGET_USERNAME' (for new entries count ${#new_bridged_entries[@]}):"
+                  for entry_debug in "${new_bridged_entries[@]}"; do log_debug "    - '$entry_debug'"; done
+                  for entry in "${new_bridged_entries[@]}"; do 
+                      add_bridged_entry "$XML_BRIDGES_FULL_PATH" "$TARGET_USERNAME" "$entry" || continue
+                  done
+                  changes_made_in_batch=true
+              fi
+
+              # if any (curren_xml_bridges_arr - desired_bridged_entries_map) --> remove such items
+              mapfile -t obsolete_bridged_entries < \
+                      <(comm -23 <(printf '%s\n' "${current_xml_bridges_arr[@]}" | sort | grep .) \
+                                 <(printf '%s\n' "${!desired_bridged_entries_map[@]}" | sort| grep .))
+              if [[ ${#obsolete_bridged_entries[@]} -gt 0 ]]; then
+                  log_debug "  Remove obsolete bridged entries for '$TARGET_USERNAME' (delete entries count ${#obsolete_bridged_entries[@]}):"
+                  for entry_debug in "${obsolete_bridged_entries[@]}"; do log_debug "    - '$entry_debug'"; done
+                  for entry in "${obsolete_bridged_entries[@]}"; do 
+                      remove_bridged_entry "$XML_BRIDGES_FULL_PATH" "$TARGET_USERNAME" "$entry" || continue
+                  done
+                  changes_made_in_batch=true
+              fi
+        fi
+
+        if ! $changes_made_in_batch; then
+            log "No bridges changes were made to $BROKER_NAME for user '$TARGET_USERNAME'."
+        else
+            log "Changes detected bridges setup. Proceeding with Git operations for user '$TARGET_USERNAME'."
+            if ! fix_gt_in_xml_attributes_final "$XML_BRIDGES_FULL_PATH"; then
+                log_error "CRITICAL: Failed to apply final &gt; fix for $XML_BRIDGES_FULL_PATH after all changes."
+            fi
+
+            log "Staging changes..."
+            if [ -f "$XML_BRIDGES_FULL_PATH" ]; then
+                git add "$XML_BRIDGES_FULL_PATH" || { rollback_git_changes "Could not stage changes for $XML_BRIDGES_FULL_PATH." "$BRANCH_NAME"; continue; }
+            else
+                rollback_git_changes "File $XML_BRIDGES_FULL_PATH not found after processing. Cannot stage changes." "$BRANCH_NAME"
+                continue;
+            fi
+
+            COMMIT_SUBJECT="feat: Sync ActiveMQ bridges for $TARGET_USERNAME"
+            COMMIT_BODY="Automated synchronization of ActiveMQ bridges for user '$TARGET_USERNAME'.
+
+Entries were added or removed to match the source file configuration."
+            log "Committing changes..."
+            git commit -m "$COMMIT_SUBJECT" -m "$COMMIT_BODY" || { rollback_git_changes "Could not commit changes." "$BRANCH_NAME"; continue; }
+            GIT_REPO_UPDATED=true
+        fi
+
+        ### --- BRIDGES setup (END) ---
+
+        if [[ "$GIT_REPO_UPDATED" == "true" ]]; then
             log "Pushing branch '$BRANCH_NAME' to origin..."
             if [[ "$RUN_ONCE" == "true" ]]; then
                 git push --force origin "$BRANCH_NAME" || { rollback_git_changes "Could not push branch $BRANCH_NAME to origin." "$BRANCH_NAME"; continue; }
