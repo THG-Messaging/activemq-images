@@ -1,7 +1,7 @@
 ActiveMQ Classic docker images
 =====
 [![Build ActiveMQ 5.18.5 JDBC docker image](https://github.com/THG-Messaging/activemq-images/actions/workflows/ActiveMQ-5.18.5-JDBC.yml/badge.svg)](https://github.com/THG-Messaging/activemq-images/actions/workflows/ActiveMQ-5.18.5-JDBC.yml)
-[![trivy](https://github.com/THG-Messaging/activemq-images/actions/workflows/trivy.yml/badge.svg?event=status)](https://github.com/THG-Messaging/activemq-images/actions/workflows/trivy.yml)
+[![trivy](https://github.com/THG-Messaging/activemq-images/actions/workflows/trivy.yml/badge.svg)](https://github.com/THG-Messaging/activemq-images/actions/workflows/trivy.yml)
 =====
 ## .env file variables sample
 Name     | Value
