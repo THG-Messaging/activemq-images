@@ -1,0 +1,12 @@
+<networkConnectors>
+  <networkConnector name="bridge"
+                    uri="masterslave:(tcp://belekas:61616,tcp://belekur:61616)"
+                    dynamicOnly="true" decreaseNetworkConsumerPriority="true" networkTTL="2"
+                    suppressDuplicateQueueSubscriptions="true">
+    <dynamicallyIncludedDestinations>
+      <queue physicalName="Consumer.>"/>
+      <queue physicalName="Consumer1.>"/>
+      <queue physicalName="Consumer2.>"/>
+    </dynamicallyIncludedDestinations>
+  </networkConnector>
+</networkConnectors>

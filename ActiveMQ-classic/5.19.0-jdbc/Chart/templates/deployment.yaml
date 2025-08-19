@@ -1,0 +1,229 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: {{ include "ActiveMQ-JDBC.fullname" . }}
+  labels:
+    {{- include "ActiveMQ-JDBC.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 6 }}
+  serviceName: 
+      {{ include "ActiveMQ-JDBC.fullname" . }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "ActiveMQ-JDBC.serviceAccountName" . }}
+      securityContext: 
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: bridges
+          secret:
+            secretName: amq-bridges
+        - name: users
+          secret:
+            secretName: {{ .Values.secrets.usersSecretName }}
+        - name: groups
+          secret:
+            secretName: {{ .Values.secrets.groupSecretName }}
+        - name: scheduler-messages
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-pvc-scheduler-messages
+        - name: ping-exporter
+          configMap:
+            name: ping-exporter
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.webUI.port }}
+              protocol: TCP
+          {{- if or (.Values.metrics.enabled) (eq (.Values.metrics.enabled | toString) "<nil>") }} 
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+              protocol: TCP
+          {{ end }}
+          {{- if or (.Values.transportConnectors.openwire.enabled) (eq (.Values.transportConnectors.openwire.enabled | toString) "<nil>") }} 
+            - name: openwire
+              containerPort: {{ .Values.transportConnectors.openwire.port }}
+              protocol: TCP
+          {{ end }}
+          {{- if or (.Values.transportConnectors.amqp.enabled) (eq (.Values.transportConnectors.amqp.enabled | toString) "<nil>") }} 
+            - name: amqp
+              containerPort: {{ .Values.transportConnectors.amqp.port }}
+              protocol: TCP
+          {{ end }}
+          {{- if or (.Values.transportConnectors.stomp.enabled) (eq (.Values.transportConnectors.stomp.enabled | toString) "<nil>") }} 
+            - name: stomp
+              containerPort: {{ .Values.transportConnectors.stomp.port }}
+              protocol: TCP
+          {{ end }}
+          {{- if or (.Values.transportConnectors.mqtt.enabled) (eq (.Values.transportConnectors.mqtt.enabled | toString) "<nil>") }} 
+            - name: mqttp
+              containerPort: {{ .Values.transportConnectors.mqtt.port }}
+              protocol: TCP
+          {{ end }}
+          {{- if or (.Values.JMX.enabled) (eq (.Values.JMX.enabled | toString) "<nil>") }} 
+            - name: jmx
+              containerPort: {{ .Values.JMX.port }}
+              protocol: TCP
+          {{ end }}
+          volumeMounts:
+            - name: bridges
+              mountPath: /opt/apache-activemq-5.19.0/conf/bridges.xml
+              subPath: bridges.xml
+            - name: users
+              mountPath: /opt/apache-activemq-5.19.0/conf/security/users
+            - name: groups
+              mountPath: /opt/apache-activemq-5.19.0/conf/security/groups
+            - name: scheduler-messages
+              mountPath: "/opt/apache-activemq-5.19.0/schedulerData"
+          livenessProbe:
+            tcpSocket:
+               port: {{ .Values.JMX.port }}
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          readinessProbe:
+            tcpSocket:
+               port: {{ .Values.JMX.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          env:
+            - name: AMQ_VERSION
+              value: {{ .Values.versionAMQ }}
+            - name: BROKER_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: DB_HOST
+              value: {{ .Values.JDBCconfig.dbHost }}
+            - name: DB_USERNAME
+              value: {{ .Values.JDBCconfig.dbUser }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "db-details"
+                  key: "db-password"
+            - name: DB_NAME
+              value: {{ .Values.JDBCconfig.dbName }}
+            {{- if eq .Values.JDBCconfig.createTables "true" }} 
+            - name: CREATE_DB_TABLES
+              value: "true"
+            {{ else }}
+            - name: CREATE_DB_TABLES
+              value: "false"
+            {{- end }}
+            - name: ACTIVEMQ_ADMIN_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: amq-admin-secret
+                  key: amq-admin-secret
+            {{- if eq .Values.schedulerSupport.enabled "true" }} 
+            - name: SCHEDULER_SUPPORT
+              value: "true" 
+            {{ else }}
+            - name: SCHEDULER_SUPPORT
+              value: "false" 
+            {{- end }}
+            {{- if or (.Values.metrics.enabled) (eq (.Values.metrics.enabled | toString) "<nil>") }} 
+            - name: METRICS_ENABLED
+              value: "true" 
+            {{- end }}           
+            - name: USE_JMX
+              value: "true"
+            - name: MONITOR_ROLE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: amq-admin-secret
+                  key: monitor-role-pass
+            - name: CONTROL_ROLE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: amq-admin-secret
+                  key: control-role-pass
+            {{- if or (.Values.transportConnectors.openwire.enabled) (eq (.Values.transportConnectors.openwire.enabled | toString) "<nil>") }} 
+            - name: OPENWIRE_ENABLED
+              value: "true"
+            - name: OPENWIRE_PORT
+              value: "{{ .Values.transportConnectors.openwire.port }}"
+            - name: SOTIMEOUT
+              value: "{{ .Values.transportConnectors.openwire.soTimeout }}"
+            - name: SOWRITETIMEOUT
+              value: "{{ .Values.transportConnectors.openwire.soWriteTimeout }}"              
+            {{- end }}
+            {{- if or (.Values.transportConnectors.amqp.enabled) (eq (.Values.transportConnectors.amqp.enabled | toString) "<nil>") }} 
+            - name: AMQP_ENABLED
+              value: "true"
+            - name: AMQP_PORT
+              value: "{{ .Values.transportConnectors.amqp.port }}"
+            {{- end }}
+            {{- if or (.Values.transportConnectors.stomp.enabled) (eq (.Values.transportConnectors.stomp.enabled | toString) "<nil>") }}   
+            - name: STOMP_ENABLED
+              value: "true"
+            - name: STOMP_PORT
+              value: "{{ .Values.transportConnectors.stomp.port }}"
+            {{- end }}
+            {{- if or (.Values.transportConnectors.mqtt.enabled) (eq (.Values.transportConnectors.mqtt.enabled | toString) "<nil>") }}   
+            - name: MQTT_ENABLED
+              value: "true"
+            - name: MQTT_PORT
+              value: "{{ .Values.transportConnectors.mqtt.port }}"
+            - name: DEBUG
+              value: "{{ .Values.debug.enabled }}"
+            {{- end }}
+        - name: jmx-metrics
+          image: ghcr.io/thg-messaging/activemq-images/activemq-jdbc-jmx:1.0.1-2024-06-18
+          env:
+            - name: HOSTNAME
+              value: "{{ .Values.jmx_exporter.hostname }}"
+            - name: PORT
+              value: "{{ .Values.jmx_exporter.port }}"
+            - name: SERVICE_PORT
+              value: "{{ .Values.jmx_exporter.service_port }}"
+            - name: EXPORTER_VERSION
+              value: "{{ .Values.jmx_exporter.exporter_version }}"
+            - name: MONITOR_ROLE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: amq-admin-secret
+                  key: monitor-role-pass
+        - name: ping-exporter
+          image: czerwonk/ping_exporter:v1.1.0
+          volumeMounts:
+            - name: ping-exporter
+              mountPath: "/config"
+          command: ["/app/ping_exporter"]
+          args:
+            - "--config.path=/config/config.yml"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

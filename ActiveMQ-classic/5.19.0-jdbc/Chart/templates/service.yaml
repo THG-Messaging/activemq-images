@@ -1,0 +1,80 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ActiveMQ-JDBC.name" . }}-webui
+  labels:
+    {{- include "ActiveMQ-JDBC.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.webUI.type }}
+  ports:
+    - port: {{ .Values.webUI.port }}
+      targetPort: http
+      name: http
+  selector:
+    {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 4 }}
+---
+{{- if .Values.metrics.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ActiveMQ-JDBC.name" . }}-metrics
+  labels:
+  {{- include "ActiveMQ-JDBC.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.metrics.type }}
+  ports:
+    - port: {{ .Values.metrics.port }}
+      targetPort: metrics
+      name: metrics
+  selector:
+  {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 4 }}
+{{- end }}
+---
+{{- if .Values.JMX.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ActiveMQ-JDBC.name" . }}-jmx
+  labels:
+  {{- include "ActiveMQ-JDBC.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.JMX.type }}
+  ports:
+    - port: {{ .Values.JMX.port }}
+      targetPort: jmx
+      name: jmx
+  selector:
+    {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 4 }}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ActiveMQ-JDBC.name" . }}-transport
+  labels:
+  {{- include "ActiveMQ-JDBC.labels" . | nindent 4 }}
+spec:
+  ports:
+    {{- if .Values.transportConnectors.openwire.enabled }}
+    - port: {{ .Values.transportConnectors.openwire.port }}
+      targetPort: openwire
+      name: openwire
+    {{- end }}
+    {{- if .Values.transportConnectors.amqp.enabled }}
+    - port: {{ .Values.transportConnectors.amqp.port }}
+      targetPort: amqp
+      name: amqp
+    {{- end }}
+    {{- if .Values.transportConnectors.stomp.enabled }}
+    - port: {{ .Values.transportConnectors.stomp.port }}
+      targetPort: stomp
+      name: stomp
+    {{- end }}
+    {{- if .Values.transportConnectors.mqtt.enabled }}
+    - port: {{ .Values.transportConnectors.mqtt.port }}
+      targetPort: mqtt
+      name: mqtt
+    {{- end }}
+  selector:
+    {{- include "ActiveMQ-JDBC.selectorLabels" . | nindent 4 }}

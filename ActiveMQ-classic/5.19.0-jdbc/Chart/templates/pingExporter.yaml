@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ping-exporter
+data:
+  config.yml: |
+{{ toYaml .Values.ping_exporter.config | indent 4 }}
