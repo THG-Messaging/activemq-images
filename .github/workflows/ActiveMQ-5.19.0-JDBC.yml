@@ -31,7 +31,7 @@ jobs:
       - name: Set environment variables from versions.env
         shell: bash
         run: |
-          cd ActiveMQ-classic/5.19.0-jdbc
+          cd ActiveMQ-classic/5.19.0-jdbc/amq_dockerImage
           ls -la
           # Read the versions.env file line by line
           while IFS= read -r line || [ -n "$line" ]; do
