@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-amq-scheduler-messages
+  labels:
+    type: local
+spec:
+  storageClassName: {{ .Values.schedulerSupport.storageClass }}
+  capacity:
+    storage: {{ .Values.schedulerSupport.size }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/opt/apache-activemq-5.19.0/schedulerData"
+  # claimRef:
+  #   name: {{ .Release.Name }}-amq-scheduler-messages
+  #   namespace: amq
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-pvc-scheduler-messages
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.schedulerSupport.size }}
+  volumeName: {{ .Release.Name }}-amq-scheduler-messages
