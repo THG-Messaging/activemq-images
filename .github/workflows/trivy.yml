@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Test vars
-        run: echo ${{ inputs.versionN }}"
+        run: echo ${{ inputs.versionN }}
 
       - name: Build an image from Dockerfile
         run: |
