@@ -47,6 +47,7 @@ jobs:
       - name: Set Release Version
         run: |
           echo "BUILD_VERSION=$(date --rfc-3339=date)" >> ${GITHUB_ENV}
+          echo "${{ env.AMQ_VERSION }}" >> $GITHUB_OUTPUT
 
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
@@ -95,7 +96,3 @@ jobs:
           labels: ${{ steps.meta-jmx.outputs.labels }}
           build-args: |
             EXPORTER_VERSION=1.0.1
-
-  trivy:
-    uses: ./.github/workflows/trivy.yml
-    secrets: inherit
