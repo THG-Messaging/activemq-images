@@ -122,6 +122,5 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           gh pr edit ${{ github.event.pull_request.number }} --remove-label build-image
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "build-image-$(date +%s)"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
