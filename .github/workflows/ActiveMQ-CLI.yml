@@ -7,7 +7,7 @@ on:
     paths: [ 'Activemq-cli/**' ]
   pull_request:
     branches: [ "main" ]
-    types: [ opened, synchronize, labeled, unlabeled ]
+    types: [ labeled ]
 
 env:
   REGISTRY: ghcr.io
@@ -15,7 +15,7 @@ env:
 
 jobs:
   build:
-
+    if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'build-image')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -61,3 +61,11 @@ jobs:
           push: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-image') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Rename build label
+        if: github.event_name == 'pull_request'
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --remove-label build-image
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "build-image-$(date +%s)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

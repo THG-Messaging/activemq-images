@@ -7,7 +7,7 @@ on:
     paths: ['ActiveMQ-classic/5.18.5-jdbc/**']
   pull_request:
     branches: [ "main" ]
-    types: [ opened, synchronize, labeled, unlabeled ]
+    types: [ labeled ]
 
 env:
   REGISTRY: ghcr.io
@@ -15,7 +15,7 @@ env:
 
 jobs:
   build:
-
+    if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'build-image')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -81,3 +81,11 @@ jobs:
           labels: ${{ steps.meta-jmx.outputs.labels }}
           build-args: |
             EXPORTER_VERSION=1.0.1
+
+      - name: Rename build label
+        if: github.event_name == 'pull_request'
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --remove-label build-image
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "build-image-$(date +%s)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
