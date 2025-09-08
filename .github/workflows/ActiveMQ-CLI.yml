@@ -8,6 +8,7 @@ on:
   pull_request:
     branches: [ "main" ]
     types: [ labeled ]
+    paths: [ 'Activemq-cli/**' ]
 
 env:
   REGISTRY: ghcr.io
@@ -20,6 +21,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository

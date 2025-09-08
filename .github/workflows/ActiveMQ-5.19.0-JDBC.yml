@@ -8,6 +8,7 @@ on:
   pull_request:
     branches: [ "main" ]
     types: [ labeled ]
+    paths: ['ActiveMQ-classic/5.19.0-jdbc/**']
   workflow_call:
     outputs:
       version:
@@ -25,6 +26,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
