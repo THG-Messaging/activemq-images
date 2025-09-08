@@ -58,6 +58,6 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./Activemq-cli
-          push: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-image-for-testing') }}
+          push: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-image') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
