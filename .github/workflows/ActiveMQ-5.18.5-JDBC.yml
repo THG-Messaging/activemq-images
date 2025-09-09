@@ -84,7 +84,7 @@ jobs:
           build-args: |
             EXPORTER_VERSION=1.0.1
 
-      - name: Rename build label
+      - name: Remove build label
         if: github.event_name == 'pull_request'
         run: |
           gh pr edit ${{ github.event.pull_request.number }} --remove-label build-image

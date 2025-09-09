@@ -118,7 +118,7 @@ jobs:
           # Upload only when this job succeeds
           if-no-files-found: error
 
-      - name: Rename build label
+      - name: Remove build label
         if: github.event_name == 'pull_request'
         run: |
           gh pr edit ${{ github.event.pull_request.number }} --remove-label build-image

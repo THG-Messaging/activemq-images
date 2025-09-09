@@ -64,7 +64,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Rename build label
+      - name: Remove build label
         if: github.event_name == 'pull_request'
         run: |
           gh pr edit ${{ github.event.pull_request.number }} --remove-label build-image
