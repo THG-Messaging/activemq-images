@@ -147,9 +147,9 @@
 			<bean xmlns="http://www.springframework.org/schema/beans" class="org.apache.activemq.hooks.SpringContextHook" />
 		</shutdownHooks>
 
-	<plugins>
-    	    <jaasAuthenticationPlugin configuration="activemq-domain" />
-	    <authorizationPlugin>
+        <plugins>
+            <jaasAuthenticationPlugin configuration="activemq-domain" />
+            <authorizationPlugin>
                 <map>
                     <authorizationMap>
                         <authorizationEntries>
@@ -160,8 +160,8 @@
                     </authorizationMap>
                 </map>
             </authorizationPlugin>
-	    <runtimeConfigurationPlugin checkPeriod="10000" />
-    	</plugins>
+            <runtimeConfigurationPlugin checkPeriod="10000" />
+        </plugins>
 
         <networkConnectors>
         </networkConnectors>
