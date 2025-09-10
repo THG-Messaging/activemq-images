@@ -2,7 +2,7 @@
 set -u
 AUTH_DEST_FILE="/opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml"
 BRIDGES_DEST_FILE="/opt/apache-activemq-${AMQ_VERSION}/conf/activemq.xml"
-USERS_PROPERTIES="/opt/apache-activemq-${AMQ_VERSION}/conf/users.properties"
+USERS_PROPERTIES="/opt/apache-activemq-${AMQ_VERSION}/conf/security/users/users.properties"
 
 # Temporary location for script operations
 TEMP_DIR_BASE="/tmp/activemq_config_updater_$(date +%s%N)" # Unique temp base to allow parallel runs if ever needed for other purposes
