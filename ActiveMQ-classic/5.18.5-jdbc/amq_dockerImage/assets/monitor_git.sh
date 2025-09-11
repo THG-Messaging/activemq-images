@@ -104,7 +104,7 @@ update_destination_file() {
     else
         log_message "AuthorizationPlugin setup in files '$AUTH_FILE_FROM_REPO' and '$AUTH_DEST_FILE' are different. Preparing new activemq.xml version..."
         local tmp_file=$(mktemp)
-        local placeholder="AUTH-MAP-PLACEHOLDER-$(uuid)"
+        local placeholder="AUTH-MAP-PLACEHOLDER-$(uuidgen)"
         cp -f $AUTH_DEST_FILE $tmp_file
         xmlstarlet ed -L \
            -d "$XPATH_FOR_AUTH_PLUGIN/*[local-name()='map']" \
@@ -166,7 +166,7 @@ update_destination_file() {
         done
 
         local dest_tmp_file=$(mktemp)
-        local bridges_placeholder="NETWORKCONNECTORS-PLACEHOLDER-$(uuid)"
+        local bridges_placeholder="NETWORKCONNECTORS-PLACEHOLDER-$(uuidgen)"
         cp -f $BRIDGES_DEST_FILE $dest_tmp_file
 
         xmlstarlet ed -L \
