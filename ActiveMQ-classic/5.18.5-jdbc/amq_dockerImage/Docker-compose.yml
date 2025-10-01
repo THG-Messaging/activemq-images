@@ -70,6 +70,7 @@ services:
       - CHECK_INTERVAL=${CHECK_INTERVAL}
       - BROKER_NAME_FILE=${BROKER_NAME_FILE}
       - AUTH_TYPE=${AUTH_TYPE}
+      - BRIDGE_CONNECTION_STRING=${BRIDGE_CONNECTION_STRING}
     env_file:
       - path: .\.env
         required: true

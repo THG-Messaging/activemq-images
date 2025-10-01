@@ -28,11 +28,12 @@ ENV BROKER_NAME \
     SCHEDULER_SUPPORT \
     AUTH_TYPE
 
-RUN apk add --no-cache --upgrade bash git github-cli python3 py3-pip wget && \
+RUN apk add --no-cache --upgrade bash git github-cli python3 py3-pip wget xmlstarlet supervisor util-linux && \
     ln -sf python3 /usr/bin/python && \
     python3 -m venv /opt/pyvenv --system-site-packages && \
     /opt/pyvenv/bin/pip3 install requests flask && \
     mkdir -p \
+        /opt/supervisor \
         /opt/jmx_exporter \
         /opt/lbchecker \
         ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/security/users \
@@ -53,10 +54,11 @@ RUN mv ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/users.properties 
 COPY assets/activemq.xml ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/activemq.xml
 COPY assets/conf/jolokia-access.xml ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/jolokia-access.xml
 COPY assets/conf $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf
-COPY assets/monitor_bridges.sh $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/monitor_bridges.sh
-COPY assets/monitor_auth.sh $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/monitor_auth.sh
+COPY assets/monitor_git.sh $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/monitor_git.sh
+
 COPY assets/monitoring ${ACTIVEMQ_WORKDIR}/jmx_exporter
 COPY assets/lbchecker.py /opt/lbchecker/lbchecker.py
+COPY assets/supervisord.conf /opt/supervisor/supervisord.conf
 COPY assets/docker-entrypoint.sh /
 
 # Combine user and permission settings
@@ -64,8 +66,7 @@ RUN addgroup -S activemq && adduser -S activemq -G activemq && \
     chown -R activemq:activemq ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION} && \
     chmod 600 ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/jmx.access ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/conf/jmx.password && \
     chmod 777 /docker-entrypoint.sh \
-              $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/monitor_bridges.sh \
-              $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/monitor_auth.sh
+              $ACTIVEMQ_WORKDIR/apache-activemq-${AMQ_VERSION}/conf/monitor_git.sh
 
 
 WORKDIR ${ACTIVEMQ_WORKDIR}/apache-activemq-${AMQ_VERSION}/
