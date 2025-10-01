@@ -2,7 +2,7 @@ services:
   amq-cli:
     container_name: amq-cli
     image: amq-cli
-    restart: always
+    restart: "no"
     env_file:
       - config.env
     volumes:
