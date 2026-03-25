@@ -65,7 +65,7 @@ jobs:
           cd ActiveMQ-classic/${AMQ_VERSION}-jdbc/amq_dockerImage && docker build -t ghcr.io/thg-messaging/activemq-images/activemq-jdbc:${{ github.sha }} $(cat versions.env | sed 's@^@--build-arg @g' | paste -s -d " ") .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@v0
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: 'ghcr.io/thg-messaging/activemq-images/activemq-jdbc:${{ github.sha }}'
           format: 'template'
@@ -74,7 +74,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Run Trivy vulnerability scanner with table output
-        uses: aquasecurity/trivy-action@v0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'ghcr.io/thg-messaging/activemq-images/activemq-jdbc:${{ github.sha }}'
           format: "table"
